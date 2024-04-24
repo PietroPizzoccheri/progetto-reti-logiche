@@ -1,44 +1,38 @@
 library ieee;
   use ieee.std_logic_1164.all;
 
-entity TB_CLA_N is
+entity TB_CLA_5 is
 end entity;
 
-architecture behavior of TB_CLA_N is
+architecture behavior of TB_CLA_5 is
 
   -- Component Declaration for the Unit Under Test (UUT)
   -- Testing for CLA with 5 bits
-  component CLA_N
-    generic (
-      N : integer
-    );
+  component CLA_5
     port (
-      X    : in  std_logic_vector(N - 1 downto 0);
-      Y    : in  std_logic_vector(N - 1 downto 0);
-      S    : out std_logic_vector(N - 1 downto 0);
+      X    : in  std_logic_vector(5 - 1 downto 0);
+      Y    : in  std_logic_vector(5 - 1 downto 0);
+      S    : out std_logic_vector(5 - 1 downto 0);
       Cin  : in  std_logic;
       Cout : out std_logic
     );
   end component;
 
   --Inputs
-  signal X   : std_logic_vector(4 downto 0) := (others => '0');
-  signal Y   : std_logic_vector(4 downto 0) := (others => '0');
-  signal Cin : std_logic                    := '0';
+  signal X   : std_logic_vector(5 - 1 downto 0) := (others => '0');
+  signal Y   : std_logic_vector(5 - 1 downto 0) := (others => '0');
+  signal Cin : std_logic                        := '0';
 
   --Outputs
-  signal S    : std_logic_vector(4 downto 0);
+  signal S    : std_logic_vector(5 - 1 downto 0);
   signal Cout : std_logic;
 
-  signal EXPECTED_S    : std_logic_vector(4 downto 0);
+  signal EXPECTED_S    : std_logic_vector(5 - 1 downto 0);
   signal EXPECTED_COUT : std_logic;
 begin
 
   -- Instantiate the Unit Under Test (UUT)
-  uut: CLA_N
-    generic map (
-      N => 5
-    )
+  uut: CLA_5
     port map (
       X    => X,
       Y    => Y,
