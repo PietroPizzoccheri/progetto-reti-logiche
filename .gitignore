@@ -5,3 +5,6 @@
 !.gitignore
 !*.vhd
 !TB
+!MUX
+!FFD
+!CLA
