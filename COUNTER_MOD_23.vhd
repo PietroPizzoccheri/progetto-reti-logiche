@@ -10,14 +10,11 @@ entity COUNTER_MOD_23 is
 end entity;
 
 architecture rtl of COUNTER_MOD_23 is
-  component CLA_N is
-    generic (
-      N : integer
-    );
+  component CLA_5 is
     port (
-      X, Y : in  std_logic_vector(N - 1 downto 0);
+      X, Y : in  std_logic_vector(5 - 1 downto 0);
       Cin  : in  std_logic;
-      S    : out std_logic_vector(N - 1 downto 0);
+      S    : out std_logic_vector(5 - 1 downto 0);
       Cout : out std_logic
     );
   end component;
@@ -27,10 +24,7 @@ architecture rtl of COUNTER_MOD_23 is
 
 begin
   -- 5-bit CLA adder to add 1 to the counter
-  ADDER: CLA_N
-    generic map (
-      N => 5
-    )
+  ADDER: CLA_5
     port map (
       X    => Counter,
       Y    => "00001",
