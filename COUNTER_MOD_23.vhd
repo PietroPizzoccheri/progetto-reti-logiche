@@ -1,6 +1,5 @@
-
 library IEEE;
-  use IEEE.STD_LOGIC_1164.all;
+ use IEEE.STD_LOGIC_1164.all;
 
 entity COUNTER_MOD_23 is
   port (CLK   : in  std_logic;
