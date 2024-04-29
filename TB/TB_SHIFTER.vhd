@@ -14,6 +14,7 @@ architecture behavior of TB_SHIFTER is
   component SHIFTER
     port (
       CLK     : in  std_logic;
+      RESET   : in  std_logic;
       MANTIX  : in  std_logic_vector(22 downto 0);
       SHIFTED : out std_logic_vector(22 downto 0)
     );
@@ -21,6 +22,7 @@ architecture behavior of TB_SHIFTER is
 
   --Inputs
   signal CLK    : std_logic                     := '0';
+  signal RESET  : std_logic                     := '0';
   signal MANTIX : std_logic_vector(22 downto 0) := (others => '0');
 
   --Outputs
@@ -36,6 +38,7 @@ begin
   uut: SHIFTER
     port map (
       CLK     => CLK,
+      RESET   => RESET,
       MANTIX  => MANTIX,
       SHIFTED => SHIFTED
     );
@@ -61,10 +64,16 @@ begin
     EXPECTED_SHIFTED <= "00000000000000001000000";
     wait for CLK_period * 5;
     assert SHIFTED = EXPECTED_SHIFTED
-      report "Test case 1 failed"
+      report "Shift failed"
       severity error;
 
-    MANTIX <= "00000000000000000000000";
+    RESET <= '1';
+    EXPECTED_SHIFTED <= "00000000000000000000000";
+    wait for CLK_period;
+    assert SHIFTED = EXPECTED_SHIFTED
+      report "Reset failed"
+      severity error;
+
     wait;
   end process;
 
