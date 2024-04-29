@@ -35,7 +35,11 @@ begin
   carry: process (C, P, G)
   begin
     clal: for i in 0 to 5 - 1 loop -- Carry Lookahead Logic
-      C(i + 1) <= G(i) or (P(i) and C(i)); -- Compute the next carry
+      if i = 0 then
+        C(i + 1) <= G(i) or (P(i) and Cin); -- Compute the next carry
+      else
+        C(i + 1) <= G(i) or (P(i) and C(i)); -- Compute the next carry
+      end if;
     end loop;
   end process;
 

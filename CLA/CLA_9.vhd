@@ -1,10 +1,10 @@
 library IEEE;
   use IEEE.STD_LOGIC_1164.all;
 
-entity CLA_8 is
+entity CLA_9 is
   port (
-    X, Y : in  std_logic_vector(7 downto 0);
-    S    : out std_logic_vector(7 downto 0);
+    X, Y : in  std_logic_vector(8 downto 0);
+    S    : out std_logic_vector(8 downto 0);
     Cin  : in  std_logic;
     Cout : out std_logic
   );
@@ -12,7 +12,7 @@ end entity;
 
 -- Pag. 175
 
-architecture rtl of CLA_8 is
+architecture rtl of CLA_9 is
   component FA is
     port (
       X    : in  std_logic;
@@ -24,9 +24,9 @@ architecture rtl of CLA_8 is
   end component;
 
   -- Initialize signals to 0
-  signal C : std_logic_vector(8 downto 0)     := (others => '0'); -- Carry
-  signal P : std_logic_vector(8 - 1 downto 0) := (others => '0'); -- Propagate
-  signal G : std_logic_vector(8 - 1 downto 0) := (others => '0'); -- Generate
+  signal C : std_logic_vector(9 downto 0)     := (others => '0'); -- Carry
+  signal P : std_logic_vector(9 - 1 downto 0) := (others => '0'); -- Propagate
+  signal G : std_logic_vector(9 - 1 downto 0) := (others => '0'); -- Generate
 
 begin
   G <= x and y; -- Generate bits
@@ -34,7 +34,7 @@ begin
 
   carry: process (C, P, G)
   begin
-    clal: for i in 0 to 8 - 1 loop -- Carry Lookahead Logic
+    clal: for i in 0 to 9 - 1 loop -- Carry Lookahead Logic
       if i = 0 then
         C(i + 1) <= G(i) or (P(i) and Cin); -- Compute the next carry
       else
@@ -54,7 +54,7 @@ begin
     );
 
   -- Compute the other sums with the carrys calculated by the CLAL
-  gen_full_adders: for i in 1 to 8 - 1 generate
+  gen_full_adders: for i in 1 to 9 - 1 generate
     FA_inst: FA
       port map (
         X    => x(i),
@@ -65,8 +65,6 @@ begin
       );
   end generate;
 
-  Cout <= C(8); -- Set the carry out to be the last carry from the CLL     
+  Cout <= C(9); -- Set the carry out to be the last carry from the CLL     
 
 end architecture;
-
-
