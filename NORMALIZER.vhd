@@ -35,42 +35,28 @@ architecture RTL of NORMALIZER is
   signal HAS_NORMALIZED : STD_LOGIC := '0';
 
 begin
-
-  -- Sync Reset
-  -- rst: process (CLK, RESET)
-  -- begin
-  --   if (CLK'event and CLK = '1') then
-  --     if RESET = '1' then
-  --       BIAS_TEMP <= (others => 'U');
-  --       MSB_CHECK <= '0';
-  --       MANTIX_TEMP <= (others => 'U');
-  --       HAS_NORMALIZED <= '0';
-  --     end if;
-  --   end if;
-  -- end process;
-  -- Generate MSB_CHECK based on the most significant bit of MANTIX_TEMP
-  process (CLK, MANTIX_TEMP)
+  process (CLK, RESET)
   begin
-    if (CLK'event and CLK = '1') then
-      if MANTIX_TEMP(22) = '1' and MSB_CHECK = '0' then
+    -- Async reset
+    if (RESET = '1') then
+      MSB_CHECK <= '0';
+      HAS_NORMALIZED <= '0';
+      BIAS_EXIT <= (others => 'U');
+      MANTIX_NORMALIZED <= (others => 'U');
+    elsif (CLK'event and CLK = '1') then
+      -- When we receive a 1 in the MSB we need to wait one more clock cycle
+      -- We also need to check the case when the MSB is 1 in the first cycle MANTIX(MANTIX'high) = '1'
+      if (MANTIX_TEMP(MANTIX_TEMP'high) = '1' or MANTIX(MANTIX'high) = '1') and MSB_CHECK = '0' then
         MSB_CHECK <= '1';
-      end if;
-    end if;
-  end process;
-
-  process (CLK, MSB_CHECK, BIAS_TEMP)
-  begin
-    if (CLK'event and CLK = '1') then
-      if MSB_CHECK = '1' and HAS_NORMALIZED = '0' then
+        -- The cycle after we receive the MSB we have the normalized mantissa and bias
+      elsif MSB_CHECK = '1' and HAS_NORMALIZED = '0' then
         HAS_NORMALIZED <= '1';
-        -- The clock after the MSB is set assigns the bias and mantix
         BIAS_EXIT <= BIAS_TEMP;
         MANTIX_NORMALIZED <= MANTIX_TEMP;
       end if;
     end if;
   end process;
 
-  -- Shift the mantissa based on the clock signal
   SHIFTER0: SHIFTER
     port map (
       CLK     => CLK,

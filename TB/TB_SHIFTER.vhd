@@ -57,8 +57,6 @@ begin
 
   stim_proc: process
   begin
-    -- hold reset state for 100 ns.
-    -- wait for 100 ns;
     -- Test that the shifter works correctly
     MANTIX <= "00000000000000000000010";
     EXPECTED_SHIFTED <= "00000000000000001000000";
@@ -68,7 +66,7 @@ begin
       severity error;
 
     RESET <= '1';
-    EXPECTED_SHIFTED <= "00000000000000000000000";
+    EXPECTED_SHIFTED <= (others => 'U');
     wait for CLK_period;
     assert SHIFTED = EXPECTED_SHIFTED
       report "Reset failed"

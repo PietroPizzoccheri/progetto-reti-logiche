@@ -1,5 +1,5 @@
 library IEEE;
- use IEEE.STD_LOGIC_1164.all;
+  use IEEE.STD_LOGIC_1164.all;
 
 entity COUNTER_MOD_23 is
   port (CLK   : in  std_logic;
@@ -34,6 +34,7 @@ begin
 
   count: process (CLK, RESET)
   begin
+    -- Async reset
     if (RESET = '1') then
       Counter <= "00000";
     elsif (CLK'event and CLK = '1') then

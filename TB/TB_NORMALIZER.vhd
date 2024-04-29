@@ -54,28 +54,34 @@ begin
 
   stim_proc: process
   begin
-    -- -- hold reset state for 100 ns.
-    -- wait for 100 ns;
-    -- Test case 1
-    MANTIX <= "00000111110101010010101";
-    wait for CLK_period * 23;
-    assert MANTIX_NORMALIZED = "11111010101001010100000" report "Test case 1 failed" severity error;
-
-    -- Test case 2
+    -- Worst case scenario
     MANTIX <= "00000000000000000000001";
-    wait for CLK_period * 23;
-    assert MANTIX_NORMALIZED = "10000000000000000000000" report "Test case 2 failed" severity error;
+    wait for CLK_period * 24;
+    assert MANTIX_NORMALIZED = "00000000000000000000000" report "Worst case scenario wrong mantix" severity error;
+    assert BIAS_EXIT = "10111" report "Worst case scenario wrong bias" severity error;
+    RESET <= '1';
+    wait for CLK_period;
+    RESET <= '0';
 
-    -- Test case 3
-    MANTIX <= "00000000000000000100000";
-    wait for CLK_period * 23;
-    assert MANTIX_NORMALIZED = "10000000000000000000000" report "Test case 3 failed" severity error;
+    -- Best case scenario
+    MANTIX <= "10000000000000000000000";
+    wait for CLK_period * 24;
+    assert MANTIX_NORMALIZED = "00000000000000000000000" report "Best case scenario wrong mantix" severity error;
+    assert BIAS_EXIT = "00001" report "Best case scenario wrong bias" severity error;
+    RESET <= '1';
+    wait for CLK_period;
+    RESET <= '0';
 
-    -- Test case 4
-    MANTIX <= "00000000000010000000000";
-    wait for CLK_period * 23;
-    assert MANTIX_NORMALIZED = "10000000000000000000000" report "Test case 4 failed" severity error;
+    -- Random case scenario
+    MANTIX <= "00001111000000000000000";
+    wait for CLK_period * 24;
+    assert MANTIX_NORMALIZED = "11100000000000000000000" report "Random case scenario wrong mantix" severity error;
+    assert BIAS_EXIT = "00101" report "Random case scenario wrong bias" severity error;
+    RESET <= '1';
+    wait for CLK_period;
+    RESET <= '0';
 
+    MANTIX <= (others => '0');
     wait;
   end process;
 
