@@ -24,7 +24,8 @@ architecture behavior of TB_SHIFTER is
   signal MANTIX : std_logic_vector(22 downto 0) := (others => '0');
 
   --Outputs
-  signal SHIFTED : std_logic_vector(22 downto 0);
+  signal SHIFTED          : std_logic_vector(22 downto 0);
+  signal EXPECTED_SHIFTED : std_logic_vector(22 downto 0);
 
   -- Clock period definitions
   constant CLK_period : time := 10 ns;
@@ -54,33 +55,16 @@ begin
   stim_proc: process
   begin
     -- hold reset state for 100 ns.
-    wait for 100 ns;
-
-    -- Test case 1
-    MANTIX <= "00000000000000000000001";
-    wait for CLK_period;
-    assert SHIFTED = "00000000000000000000010" report "Test case 1 failed" severity error;
-
-    -- Test case 2: Input is '00000000000000000000010'
+    -- wait for 100 ns;
+    -- Test that the shifter works correctly
     MANTIX <= "00000000000000000000010";
-    wait for CLK_period;
-    assert SHIFTED = "00000000000000000000100" report "Test case 2 failed" severity error;
+    EXPECTED_SHIFTED <= "00000000000000001000000";
+    wait for CLK_period * 5;
+    assert SHIFTED = EXPECTED_SHIFTED
+      report "Test case 1 failed"
+      severity error;
 
-    -- Test case 3
-    MANTIX <= "00000000000000000000100";
-    wait for CLK_period;
-    assert SHIFTED = "00000000000000000001000" report "Test case 3 failed" severity error;
-
-    -- Test case 4
-    MANTIX <= "00000000000000000001000";
-    wait for CLK_period;
-    assert SHIFTED = "00000000000000000010000" report "Test case 4 failed" severity error;
-
-    -- Test case 5
-    MANTIX <= "00000000000000000010000";
-    wait for CLK_period;
-    assert SHIFTED = "00000000000000000100000" report "Test case 5 failed" severity error;
-
+    MANTIX <= "00000000000000000000000";
     wait;
   end process;
 

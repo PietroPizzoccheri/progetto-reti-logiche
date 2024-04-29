@@ -11,13 +11,20 @@ end entity;
 
 architecture RTL of SHIFTER is
 
+  signal SHIFTED_TEMP : STD_LOGIC_VECTOR(22 downto 0) := (others => '0');
+
 begin
-  ff: process (CLK)
+  shift: process (CLK)
   begin
     if (CLK'event and CLK = '1') then
-      SHIFTED <= MANTIX(21 downto 0) & "0";
+      if (SHIFTED_TEMP = "00000000000000000000000") then
+        SHIFTED_TEMP <= MANTIX(21 downto 0) & "0";
+      else
+        SHIFTED_TEMP <= SHIFTED_TEMP(21 downto 0) & "0";
+      end if;
     end if;
   end process;
 
+  SHIFTED <= SHIFTED_TEMP;
 end architecture;
 
