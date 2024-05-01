@@ -24,7 +24,8 @@ architecture behavior of TB_CLA_MUL_23 is
   signal Y : std_logic_vector(22 downto 0) := (others => '0');
 
   --Outputs
-  signal P : std_logic_vector(45 downto 0);
+  signal P          : std_logic_vector(45 downto 0);
+  signal EXPECTED_P : std_logic_vector(45 downto 0);
 begin
 
   -- Instantiate the Unit Under Test (UUT)
@@ -39,17 +40,25 @@ begin
 
   stim_proc: process
   begin
-    -- insert stimulus here 
     X <= "00000000000000000000010";
     Y <= "00000000000000000000010";
-    assert (P = "000000000000000000000100") report "Test 1 failed" severity error;
-    wait for 100 ns;
+    EXPECTED_P <= "0000000000000000000000000000000000000000000100";
+    wait for 50 ns;
+    assert (P = EXPECTED_P) report "Test 1 failed" severity error;
 
-    X <= "00000000000000000000100";
-    Y <= "00000000000000000000100";
-    assert (P = "000000000000000000010000") report "Test 2 failed" severity error;
+    X <= "11111111111000000000000";
+    Y <= "11111111111000000000000";
+    EXPECTED_P <= "0111111111100000000000100000000000000000000000";
+    wait for 50 ns;
+    assert (P = EXPECTED_P) report "Test 2 failed" severity error;
+
+    X <= "00000000000000000000111";
+    Y <= "00000000000000000000111";
+    EXPECTED_P <= "0000000000000000000000000000000000000000110001";
+    wait for 50 ns;
+    assert (P = EXPECTED_P) report "Test 3 failed" severity error;
+
     wait;
-
   end process;
 
 end architecture;
