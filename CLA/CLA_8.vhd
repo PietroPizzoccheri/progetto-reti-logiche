@@ -25,8 +25,8 @@ architecture rtl of CLA_8 is
 
   -- Initialize signals to 0
   signal C : std_logic_vector(8 downto 0)     := (others => '0'); -- Carry
-  signal P : std_logic_vector(8 - 1 downto 0) := (others => '0'); -- Propagate
-  signal G : std_logic_vector(8 - 1 downto 0) := (others => '0'); -- Generate
+  signal P : std_logic_vector(7 downto 0) := (others => '0'); -- Propagate
+  signal G : std_logic_vector(7 downto 0) := (others => '0'); -- Generate
 
 begin
   G <= x and y; -- Generate bits
@@ -34,7 +34,7 @@ begin
 
   carry: process (C, P, G)
   begin
-    clal: for i in 0 to 8 - 1 loop -- Carry Lookahead Logic
+    clal: for i in 0 to 7 loop -- Carry Lookahead Logic
       if i = 0 then
         C(i + 1) <= G(i) or (P(i) and Cin); -- Compute the next carry
       else
@@ -54,7 +54,7 @@ begin
     );
 
   -- Compute the other sums with the carrys calculated by the CLAL
-  gen_full_adders: for i in 1 to 8 - 1 generate
+  gen_full_adders: for i in 1 to 7 generate
     FA_inst: FA
       port map (
         X    => x(i),

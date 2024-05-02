@@ -7,7 +7,7 @@ end entity;
 architecture behavior of TB_EXP_ADDER is
 
   -- Component Declaration for the Unit Under Test (UUT)
-  component TB_EXP_ADDER
+  component EXP_ADDER
     port (
       E1  : in  STD_LOGIC_VECTOR(7 downto 0);
       E2  : in  STD_LOGIC_VECTOR(7 downto 0);
@@ -25,7 +25,7 @@ architecture behavior of TB_EXP_ADDER is
 begin
 
   -- Instantiate the Unit Under Test (UUT)
-  uut: TB_EXP_ADDER
+  uut: EXP_ADDER
     port map (
       E1  => E1,
       E2  => E2,
@@ -59,8 +59,8 @@ begin
     E2 <= "00011111";
     wait for 20 ns;
 
-    E1 <= "11110000";
-    E2 <= "10011111";
+    E1 <= "10000100";
+    E2 <= "10000001";
     wait;
   end process;
 

@@ -54,7 +54,7 @@ begin
     );
 
   -- Compute the other sums with the carrys calculated by the CLAL
-  gen_full_adders: for i in 1 to 9 - 1 generate
+  gen_full_adders: for i in 1 to 8 generate
     FA_inst: FA
       port map (
         X    => x(i),

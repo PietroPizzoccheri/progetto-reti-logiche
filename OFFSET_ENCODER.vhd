@@ -1,6 +1,9 @@
 library IEEE;
   use IEEE.STD_LOGIC_1164.all;
 
+-- 20 ns to compute
+
+
 entity OFFSET_ENCODER is
   port (
     X : in  std_logic_vector(23 downto 0); -- The input vector (The 24bit Mantix)
