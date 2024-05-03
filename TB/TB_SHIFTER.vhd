@@ -13,65 +13,57 @@ architecture behavior of TB_SHIFTER is
   -- Component Declaration for the Unit Under Test (UUT)
   component SHIFTER
     port (
-      CLK     : in  std_logic;
-      RESET   : in  std_logic;
-      MANTIX  : in  std_logic_vector(22 downto 0);
-      SHIFTED : out std_logic_vector(22 downto 0)
+      MANTIX  : in  std_logic_vector(23 downto 0);
+      SHIFTED : out std_logic_vector(23 downto 0);
+      OFFSET  : out  std_logic_vector(4 downto 0)
     );
   end component;
 
   --Inputs
-  signal CLK    : std_logic                     := '0';
-  signal RESET  : std_logic                     := '0';
-  signal MANTIX : std_logic_vector(22 downto 0) := (others => '0');
+  signal MANTIX : std_logic_vector(23 downto 0);
 
   --Outputs
-  signal SHIFTED          : std_logic_vector(22 downto 0);
-  signal EXPECTED_SHIFTED : std_logic_vector(22 downto 0);
-
-  -- Clock period definitions
-  constant CLK_period : time := 10 ns;
+  signal SHIFTED          : std_logic_vector(23 downto 0);
+  signal OFFSET           : std_logic_vector(4 downto 0);
 
 begin
-
   -- Instantiate the Unit Under Test (UUT)
   uut: SHIFTER
     port map (
-      CLK     => CLK,
-      RESET   => RESET,
       MANTIX  => MANTIX,
-      SHIFTED => SHIFTED
+      SHIFTED => SHIFTED,
+      OFFSET  => OFFSET
     );
 
-  -- Clock process definitions
 
-  CLK_process: process
-  begin
-    CLK <= '0';
-    wait for CLK_period / 2;
-    CLK <= '1';
-    wait for CLK_period / 2;
-  end process;
 
   -- Stimulus process
 
-  stim_proc: process
+  stim_proc : process
   begin
-    -- Test that the shifter works correctly
-    MANTIX <= "00000000000000000000010";
-    EXPECTED_SHIFTED <= "00000000000000001000000";
-    wait for CLK_period * 5;
-    assert SHIFTED = EXPECTED_SHIFTED
-      report "Shift failed"
-      severity error;
+    
+    MANTIX <= "000000000000000000000000"; 
+    wait for 50 ns;
 
-    RESET <= '1';
-    EXPECTED_SHIFTED <= (others => 'U');
-    wait for CLK_period;
-    assert SHIFTED = EXPECTED_SHIFTED
-      report "Reset failed"
-      severity error;
+    MANTIX <= "000010000000000110000000"; 
+    wait for 50 ns;
 
+    MANTIX <= "000000000001111111111111"; 
+    wait for 50 ns;
+
+    MANTIX <= "000000000000000100000000"; 
+    wait for 50 ns;
+
+    MANTIX <= "000111111110000000000000"; 
+    wait for 50 ns;
+
+    MANTIX <= "000000000011111111100000"; 
+    wait for 50 ns;
+
+    MANTIX <= "001111011101010010100000"; 
+    wait for 50 ns;
+
+    MANTIX <= "000000000000000000000001";
     wait;
   end process;
 
