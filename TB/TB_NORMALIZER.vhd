@@ -1,87 +1,71 @@
 library ieee;
   use ieee.std_logic_1164.all;
 
+  -- Uncomment the following library declaration if using
+  -- arithmetic functions with Signed or Unsigned values
+  --USE ieee.numeric_std.ALL;
+
 entity TB_NORMALIZER is
 end entity;
 
 architecture behavior of TB_NORMALIZER is
 
   -- Component Declaration for the Unit Under Test (UUT)
-  component NORMALIZER is
+  component NORMALIZER
     port (
-      MANTIX            : in  STD_LOGIC_VECTOR(22 downto 0);
-      CLK               : in  STD_LOGIC;
-      RESET             : in  STD_LOGIC;
-      BIAS_EXIT         : out STD_LOGIC_VECTOR(4 downto 0);
-      MANTIX_NORMALIZED : out STD_LOGIC_VECTOR(22 downto 0)
+      MANTIX  : in  std_logic_vector(23 downto 0);
+      SHIFTED : out std_logic_vector(23 downto 0);
+      OFFSET  : out  std_logic_vector(4 downto 0)
     );
   end component;
 
   --Inputs
-  signal MANTIX : STD_LOGIC_VECTOR(22 downto 0) := (others => '0');
-  signal CLK    : STD_LOGIC                     := '0';
-  signal RESET  : STD_LOGIC                     := '0';
+  signal MANTIX : std_logic_vector(23 downto 0);
 
   --Outputs
-  signal BIAS_EXIT         : STD_LOGIC_VECTOR(4 downto 0);
-  signal MANTIX_NORMALIZED : STD_LOGIC_VECTOR(22 downto 0);
-
-  constant CLK_period : time := 10 ns;
+  signal SHIFTED          : std_logic_vector(23 downto 0);
+  signal OFFSET           : std_logic_vector(4 downto 0);
 
 begin
-
   -- Instantiate the Unit Under Test (UUT)
   uut: NORMALIZER
     port map (
-      MANTIX            => MANTIX,
-      CLK               => CLK,
-      RESET             => RESET,
-      BIAS_EXIT         => BIAS_EXIT,
-      MANTIX_NORMALIZED => MANTIX_NORMALIZED
+      MANTIX  => MANTIX,
+      SHIFTED => SHIFTED,
+      OFFSET  => OFFSET
     );
 
-  -- Clock process definitions
 
-  CLK_process: process
-  begin
-    CLK <= '0';
-    wait for CLK_period / 2;
-    CLK <= '1';
-    wait for CLK_period / 2;
-  end process;
 
   -- Stimulus process
 
-  stim_proc: process
+  stim_proc : process
   begin
-    -- Worst case scenario
-    MANTIX <= "00000000000000000000001";
-    wait for CLK_period * 24;
-    assert MANTIX_NORMALIZED = "00000000000000000000000" report "Worst case scenario wrong mantix" severity error;
-    assert BIAS_EXIT = "10111" report "Worst case scenario wrong bias" severity error;
-    RESET <= '1';
-    wait for CLK_period;
-    RESET <= '0';
 
-    -- Best case scenario
-    MANTIX <= "10000000000000000000000";
-    wait for CLK_period * 24;
-    assert MANTIX_NORMALIZED = "00000000000000000000000" report "Best case scenario wrong mantix" severity error;
-    assert BIAS_EXIT = "00001" report "Best case scenario wrong bias" severity error;
-    RESET <= '1';
-    wait for CLK_period;
-    RESET <= '0';
+    wait for 100 ns;
+    
+    MANTIX <= "000000000000000000000000"; 
+    wait for 50 ns;
 
-    -- Random case scenario
-    MANTIX <= "00001111000000000000000";
-    wait for CLK_period * 24;
-    assert MANTIX_NORMALIZED = "11100000000000000000000" report "Random case scenario wrong mantix" severity error;
-    assert BIAS_EXIT = "00101" report "Random case scenario wrong bias" severity error;
-    RESET <= '1';
-    wait for CLK_period;
-    RESET <= '0';
+    MANTIX <= "000010000000000110000000"; 
+    wait for 50 ns;
 
-    MANTIX <= (others => '0');
+    MANTIX <= "000000000001111111111111"; 
+    wait for 50 ns;
+
+    MANTIX <= "000000000000000100000000"; 
+    wait for 50 ns;
+
+    MANTIX <= "000111111110000000000000"; 
+    wait for 50 ns;
+
+    MANTIX <= "000000000011111111100000"; 
+    wait for 50 ns;
+
+    MANTIX <= "001111011101010010100000"; 
+    wait for 50 ns;
+
+    MANTIX <= "000000000000000000000001";
     wait;
   end process;
 
