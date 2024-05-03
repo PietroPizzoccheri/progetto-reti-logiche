@@ -2,6 +2,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
+-- 12 ns to compute correctly
 
 entity EXP_ADDER is
     Port ( 

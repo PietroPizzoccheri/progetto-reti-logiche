@@ -2,6 +2,8 @@
 library IEEE;
   use IEEE.STD_LOGIC_1164.all;
 
+-- 17/20 ns to compute correctly
+
 entity EDGE_CASES_HANDLER is
   port (
     X       : in  std_logic_vector(31 downto 0);

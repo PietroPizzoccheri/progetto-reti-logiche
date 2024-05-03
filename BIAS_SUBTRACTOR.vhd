@@ -2,6 +2,8 @@
 library IEEE;
   use IEEE.STD_LOGIC_1164.all;
 
+-- 12 ns to compute
+
 entity BIAS_SUBTRACTOR is
   port (
     EXP  : in  STD_LOGIC_VECTOR(8 downto 0);

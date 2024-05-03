@@ -1,7 +1,9 @@
 library IEEE;
   use IEEE.STD_LOGIC_1164.all;
 
-entity CLA_MUL_23 is
+-- 60 ns to compute (first is slow than computation gets faster)
+
+entity MUL_24_CLA is
   port (
     X : in  std_logic_vector(23 downto 0);
     Y : in  std_logic_vector(23 downto 0);
@@ -10,7 +12,7 @@ entity CLA_MUL_23 is
 end entity;
 
 
-architecture rtl of CLA_MUL_23 is
+architecture rtl of MUL_24_CLA is
   component CLA_48 is
     port (
       X, Y : in  std_logic_vector(47 downto 0);

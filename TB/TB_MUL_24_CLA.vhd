@@ -5,13 +5,13 @@ library ieee;
   -- arithmetic functions with Signed or Unsigned values
   --USE ieee.numeric_std.ALL;
 
-entity TB_CLA_MUL_23 is
+entity TB_MUL_24_CLA is
 end entity;
 
-architecture behavior of TB_CLA_MUL_23 is
+architecture behavior of TB_MUL_24_CLA is
 
   -- Component Declaration for the Unit Under Test (UUT)
-  component CLA_MUL_23
+  component MUL_24_CLA
     port (
       X : in  std_logic_vector(23 downto 0);
       Y : in  std_logic_vector(23 downto 0);
@@ -29,7 +29,7 @@ architecture behavior of TB_CLA_MUL_23 is
 begin
 
   -- Instantiate the Unit Under Test (UUT)
-  uut: CLA_MUL_23
+  uut: MUL_24_CLA
     port map (
       X => X,
       Y => Y,
@@ -40,6 +40,8 @@ begin
 
   stim_proc: process
   begin
+
+  wait for 100 ns;
     X <= "000000000000000000000010";
     Y <= "000000000000000000000010";
     EXPECTED_P <= "000000000000000000000000000000000000000000000100";
