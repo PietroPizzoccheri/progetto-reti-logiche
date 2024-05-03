@@ -31,6 +31,7 @@ architecture rtl of CLA_5 is
 begin
   G <= x and y; -- Generate bits
   P <= x or y;  -- Propagate bits
+  C(0) <= Cin;  -- Set the first carry to the input carry
 
   carry: process (C, P, G)
   begin
