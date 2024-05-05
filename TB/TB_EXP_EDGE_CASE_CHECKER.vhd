@@ -28,7 +28,6 @@ architecture behavior of TB_FLAG_SETTER is
   signal denorm : std_logic;
   signal nan    : std_logic;
   signal inf    : std_logic;
-
 begin
 
   -- Instantiate the Unit Under Test (UUT)

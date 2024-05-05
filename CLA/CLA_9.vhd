@@ -29,9 +29,9 @@ architecture rtl of CLA_9 is
   signal G : std_logic_vector(9 - 1 downto 0) := (others => '0'); -- Generate
 
 begin
-  G <= x and y; -- Generate bits
-  P <= x or y;  -- Propagate bits
-  C(0) <= Cin;  -- Set the first carry to the input carry
+  G    <= x and y; -- Generate bits
+  P    <= x or y;  -- Propagate bits
+  C(0) <= Cin;     -- Set the first carry to the input carry
 
   carry: process (C, P, G)
   begin
