@@ -12,7 +12,7 @@ architecture behavior of TB_BIAS_SUBTRACTOR is
     port (
       EXP  : in  STD_LOGIC_VECTOR(8 downto 0);
       BIAS : in  STD_LOGIC_VECTOR(8 downto 0);
-      S    : out STD_LOGIC_VECTOR(8 downto 0)
+      S    : out STD_LOGIC_VECTOR(9 downto 0)
     );
   end component;
 
@@ -21,8 +21,11 @@ architecture behavior of TB_BIAS_SUBTRACTOR is
   signal BIAS : std_logic_vector(8 downto 0) := (others => '0');
 
   --Outputs
-  signal S          : std_logic_vector(8 downto 0);
-  signal EXPECTED_S : std_logic_vector(8 downto 0);
+  signal S          : std_logic_vector(9 downto 0);
+  signal EXPECTED_S : std_logic_vector(9 downto 0);
+
+  --Utility
+  constant MAXIMUM_BIAS : std_logic_vector(8 downto 0) := "010010110";
 begin
 
   -- Instantiate the Unit Under Test (UUT)
@@ -38,29 +41,28 @@ begin
   begin
     -- Maximum value for EXP and BIAS
     EXP <= "111111110";
-    BIAS <= "000010111";
-    EXPECTED_S <= "111100111";
-    wait for 20 ns;
+    BIAS <= MAXIMUM_BIAS;
+    EXPECTED_S <= "1101101000";
+    wait for 50 ns;
     assert S = EXPECTED_S
       severity error;
 
     -- Minimum value for EXP and Maximum BIAS
     EXP <= "000000001";
-    BIAS <= "000010111";
-    EXPECTED_S <= "111101010";
-    wait for 20 ns;
+    BIAS <= MAXIMUM_BIAS;
+    EXPECTED_S <= "1101101011";
+    wait for 50 ns;
     assert S = EXPECTED_S
       severity error;
 
     EXP <= "100000101";
     BIAS <= "001111111";
-    EXPECTED_S <= "010000110";
-    wait for 20 ns;
+    EXPECTED_S <= "11010000110";
+    wait for 50 ns;
     assert S = EXPECTED_S
       severity error;
 
     wait;
 
   end process;
-
 end architecture;
