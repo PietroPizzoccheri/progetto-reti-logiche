@@ -33,14 +33,16 @@ begin
     );
 
   -- Clock process definitions
-
-
   -- Stimulus process
 
   stim_proc: process
   begin
     E1 <= "00000000";
     E2 <= "00000000";
+    wait for 20 ns;
+
+    E1 <= "00000000";
+    E2 <= "00000001";
     wait for 20 ns;
 
     E1 <= "01110000";
