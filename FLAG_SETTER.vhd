@@ -21,12 +21,12 @@ architecture RTL of FLAG_SETTER is
       Y : out STD_LOGIC_VECTOR(0 to 3));
   end component;
 
-  signal or_result   : std_logic;
-  signal and_result  : std_logic;
-  signal mantix_zero : std_logic;
+  signal or_result      : std_logic;
+  signal and_result     : std_logic;
+  signal mantix_zero    : std_logic;
   signal zero_or_denorm : std_logic;
   signal inf_or_nan     : std_logic;
-  signal Y           : std_logic_vector(0 to 3);
+  signal Y              : std_logic_vector(0 to 3);
 
 begin
   -- or_result is the result of the OR operation agains every bit of exp

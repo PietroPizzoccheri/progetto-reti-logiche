@@ -9,11 +9,12 @@ architecture behavior of TB_EDGE_CASES_HANDLER is
   -- Component Declaration for the Unit Under Test (UUT)
   component EDGE_CASES_HANDLER
     port (
-      X       : in  std_logic_vector(31 downto 0);
-      Y       : in  std_logic_vector(31 downto 0);
-      zero    : out std_logic;
-      invalid : out std_logic;
-      inf     : out std_logic
+      X           : in  std_logic_vector(31 downto 0);
+      Y           : in  std_logic_vector(31 downto 0);
+      zero        : out std_logic;
+      invalid     : out std_logic;
+      inf         : out std_logic;
+      both_denorm : out std_logic
     );
   end component;
 
@@ -22,9 +23,10 @@ architecture behavior of TB_EDGE_CASES_HANDLER is
   signal Y : std_logic_vector(31 downto 0) := (others => '0');
 
   --Outputs
-  signal zero    : std_logic;
-  signal invalid : std_logic;
-  signal inf     : std_logic;
+  signal zero        : std_logic;
+  signal invalid     : std_logic;
+  signal inf         : std_logic;
+  signal both_denorm : std_logic;
 
   --Values
   constant norm_v   : std_logic_vector(31 downto 0) := "01000000000000000000000000000000";
@@ -37,11 +39,12 @@ begin
   -- Instantiate the Unit Under Test (UUT)
   uut: EDGE_CASES_HANDLER
     port map (
-      X       => X,
-      Y       => Y,
-      zero    => zero,
-      invalid => invalid,
-      inf     => inf
+      X           => X,
+      Y           => Y,
+      zero        => zero,
+      invalid     => invalid,
+      inf         => inf,
+      both_denorm => both_denorm
     );
 
   -- Stimulus process

@@ -2,18 +2,21 @@
 library IEEE;
   use IEEE.STD_LOGIC_1164.all;
 
--- 17/20 ns to compute correctly
+  -- 17/20 ns to compute correctly
 
 entity EDGE_CASES_HANDLER is
   port (
-    X       : in  std_logic_vector(31 downto 0);
-    Y       : in  std_logic_vector(31 downto 0);
-    zero    : out std_logic;
-    invalid : out std_logic;
-    inf     : out std_logic
+    X           : in  std_logic_vector(31 downto 0);
+    Y           : in  std_logic_vector(31 downto 0);
+    zero        : out std_logic;
+    invalid     : out std_logic;
+    inf         : out std_logic;
+    both_denorm : out std_logic
   );
 
 end entity;
+
+-- Computes the special cases of the IEEE 754 standard
 
 architecture RTL of EDGE_CASES_HANDLER is
 
@@ -37,17 +40,15 @@ architecture RTL of EDGE_CASES_HANDLER is
     );
   end component;
 
-  signal sign_X, sign_Y     : std_logic;
   signal exp_X, exp_Y       : std_logic_vector(7 downto 0);
   signal mantix_X, mantix_Y : std_logic_vector(22 downto 0);
-  signal f                  : std_logic_vector(2 downto 0); -- function of the truth table 
-  signal X_case, Y_case     : std_logic_vector(4 downto 0); -- truth table cases
+  -- signal f                  : std_logic_vector(2 downto 0); -- function of the truth table 
+  -- signal X_case, Y_case     : std_logic_vector(4 downto 0); -- truth table cases
   --constant NaN      : std_logic_vector(4 downto 0) := "00001";
   --constant INFINITY : std_logic_vector(4 downto 0) := "00010";
   --constant CONST    : std_logic_vector(4 downto 0) := "00100";
   --constant DENORM   : std_logic_vector(4 downto 0) := "01000";
   --constant NORM     : std_logic_vector(4 downto 0) := "10000";
-
   signal zero_X, zero_Y, inf_X, inf_Y, nan_X, nan_Y, norm_X, norm_Y, denorm_X, denorm_Y : std_logic;
 
 begin
@@ -55,13 +56,13 @@ begin
   -- split X and Y inputs into sign, exponent and mantissa
   operand_splitter_X: OPERANDS_SPLITTER
     port map (float  => X,
-              sign   => sign_X,
+              sign   => open,
               exp    => exp_X,
               mantix => mantix_X);
 
   operand_splitter_Y: OPERANDS_SPLITTER
     port map (float  => Y,
-              sign   => sign_Y,
+              sign   => open,
               exp    => exp_Y,
               mantix => mantix_Y);
 
@@ -85,9 +86,10 @@ begin
               inf    => inf_Y);
 
   -- check for edge case combinations
-  zero    <= (zero_X and norm_Y) or (norm_X and zero_Y) or (zero_X and denorm_Y) or (denorm_X and zero_Y) or (zero_X and zero_Y);
-  invalid <= (nan_X and norm_Y) or (norm_X and nan_Y) or (nan_X and denorm_Y) or (denorm_X and nan_Y) or (nan_X and zero_Y) or (zero_X and nan_Y) or (nan_X and inf_Y) or (inf_x and nan_Y) or (zero_X and inf_Y) or (inf_X and zero_Y) or (nan_X and nan_Y);
-  inf     <= (inf_X and norm_Y) or (norm_X and inf_Y) or (inf_X and denorm_Y) or (denorm_X and inf_Y) or (inf_X and inf_Y) or (inf_Y and inf_X);
+  zero        <= (zero_X and norm_Y) or (norm_X and zero_Y) or (zero_X and denorm_Y) or (denorm_X and zero_Y) or (zero_X and zero_Y);
+  invalid     <= (nan_X and norm_Y) or (norm_X and nan_Y) or (nan_X and denorm_Y) or (denorm_X and nan_Y) or (nan_X and zero_Y) or (zero_X and nan_Y) or (nan_X and inf_Y) or (inf_x and nan_Y) or (zero_X and inf_Y) or (inf_X and zero_Y) or (nan_X and nan_Y);
+  inf         <= (inf_X and norm_Y) or (norm_X and inf_Y) or (inf_X and denorm_Y) or (denorm_X and inf_Y) or (inf_X and inf_Y) or (inf_Y and inf_X);
+  both_denorm <= (denorm_X and denorm_Y);
   --X_case <= norm_X & denorm_X & zero_X & inf_X & nan_X; -- truth table for X
   --Y_case <= norm_Y & denorm_X & zero_Y & inf_Y & nan_Y; -- truth table for Y
   -- truth table 
