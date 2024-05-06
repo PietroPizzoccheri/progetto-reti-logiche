@@ -11,7 +11,7 @@ entity FFD_N is
        );
 end entity;
 
-architecture rtl_rising_edge of FFD_5 is
+architecture rtl_rising_edge of FFD_N is
 begin
   ff: process (CLK)
   begin
