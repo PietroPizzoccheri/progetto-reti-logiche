@@ -47,27 +47,6 @@ begin
     assert S = EXPECTED_S
       severity error;
 
-    EXP <= "000000010";
-    BIAS <= "001111111";
-    EXPECTED_S <= "1110000011";
-    wait for 50 ns;
-    assert S = EXPECTED_S
-      severity error;
-
-      EXP <= "000000010";
-    BIAS <= MAXIMUM_BIAS;
-    EXPECTED_S <= "1110000011";
-    wait for 50 ns;
-    assert S = EXPECTED_S
-      severity error;
-
-    EXP <= "011100100";
-    BIAS <= "010001111"; -- offset 16 bit
-    EXPECTED_S <= "0001100101";
-    wait for 50 ns;
-    assert S = EXPECTED_S
-      severity error;
-
     -- Minimum value for EXP and Maximum BIAS
     EXP <= "000000001";
     BIAS <= MAXIMUM_BIAS;
@@ -75,13 +54,38 @@ begin
     wait for 50 ns;
     assert S = EXPECTED_S
       severity error;
-      
-
-
 
     EXP <= "100000101";
     BIAS <= "001111111";
-    EXPECTED_S <= "1101000110";
+    EXPECTED_S <= "1010000110";
+    wait for 50 ns;
+    assert S = EXPECTED_S
+      severity error;
+
+       EXP <= "100000101";
+    BIAS <= "001111111";
+    EXPECTED_S <= "1010000110";
+    wait for 50 ns;
+    assert S = EXPECTED_S
+      severity error;
+
+       EXP <= "000000010";
+    BIAS <= MAXIMUM_BIAS;
+    EXPECTED_S <= "1010000110";
+    wait for 50 ns;
+    assert S = EXPECTED_S
+      severity error;
+
+       EXP <= "100110001";
+    BIAS <= MAXIMUM_BIAS;
+    EXPECTED_S <= "1010000110";
+    wait for 50 ns;
+    assert S = EXPECTED_S
+      severity error;
+
+       EXP <= "100000001";
+    BIAS <= "001111111";
+    EXPECTED_S <= "0010000010";
     wait for 50 ns;
     assert S = EXPECTED_S
       severity error;

@@ -4,6 +4,7 @@ library IEEE;
 
   -- 12 ns to compute
 
+ -- sums 2 unsigned numbers and the result is signed
 entity BIAS_SUBTRACTOR is
   port (
     EXP  : in  STD_LOGIC_VECTOR(8 downto 0);
@@ -14,29 +15,39 @@ end entity;
 
 architecture RTL of BIAS_SUBTRACTOR is
 
-  component CLA_9 is
+  component CLA_12 is
     port (
-      X, Y : in  std_logic_vector(8 downto 0);
+      X, Y : in  std_logic_vector(11 downto 0);
       Cin  : in  std_logic;
-      S    : out std_logic_vector(8 downto 0);
+      S    : out std_logic_vector(11 downto 0);
       Cout : out std_logic
     );
   end component;
 
   signal COUT_TEMP : std_logic;
-  signal TEMP_SUM  : std_logic_vector(8 downto 0);
+  signal EXP_12    : std_logic_vector(11 downto 0);
+  signal BIAS_12   : std_logic_vector(11 downto 0);
+  signal C1_BIAS   : std_logic_vector(11 downto 0);
+  signal TEMP_SUM  : std_logic_vector(11 downto 0);
+
 begin
-  adder: CLA_9
+
+  EXP_12  <= "000" & EXP;
+  BIAS_12 <= "000" & BIAS;
+  C1_BIAS <= not BIAS_12;
+  adder: CLA_12
     port map (
-      X    => EXP,
-      Y    => not BIAS,
-      S    => TEMP_SUM(8 downto 0),
+      X    => EXP_12,
+      Y    => C1_BIAS,
+      S    => TEMP_SUM(11 downto 0),
       Cin  => '1',
       Cout => COUT_TEMP
     );
 
   S(8 downto 0) <= TEMP_SUM(8 downto 0);
-  -- BIAS will always be negative since we are subtracting it
-  S(9) <= COUT_TEMP when (EXP(8) = '1') and ((TEMP_SUM(8) = '1' and COUT_TEMP = '0') or (TEMP_SUM(8) = '0' and COUT_TEMP = '1')) else TEMP_SUM(8);
   
+
+  S(9) <= TEMP_SUM(9) when ((EXP(8) = '1' and C1_BIAS(8) = '1') or (EXP(8) = '0' and C1_BIAS(8) = '0')) and ((TEMP_SUM(8) = '1' and TEMP_SUM(9) = '0') or (TEMP_SUM(8) = '0' and TEMP_SUM(9) = '1')) else TEMP_SUM(8);
+
+  -- S(9) <= COUT_TEMP when (EXP(8) = '1') and ((TEMP_SUM(8) = '1' and COUT_TEMP = '0') or (TEMP_SUM(8) = '0' and COUT_TEMP = '1')) else TEMP_SUM(8);
 end architecture;
