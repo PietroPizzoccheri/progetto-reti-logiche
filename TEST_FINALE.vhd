@@ -50,6 +50,15 @@ architecture RTL of TEST_FINALE is
     );
   end component;
 
+  component CLA_12 is
+    port (
+      X, Y : in  std_logic_vector(11 downto 0);
+      S    : out std_logic_vector(11 downto 0);
+      Cin  : in  std_logic;
+      Cout : out std_logic
+    );
+  end component;
+
   component BIAS_SUBTRACTOR is
     port (
       EXP  : in  STD_LOGIC_VECTOR(8 downto 0);
@@ -105,6 +114,15 @@ architecture RTL of TEST_FINALE is
     );
   end component;
 
+  component FINAL_EXP_CALCULATOR is
+    port (
+      EXP    : in  STD_LOGIC_VECTOR(9 downto 0);
+      OFFSET : in  STD_LOGIC_VECTOR(4 downto 0);
+      SUB    : in  STD_LOGIC;
+      S      : out STD_LOGIC_VECTOR(9 downto 0)
+    );
+  end component;
+
   signal sign : STD_LOGIC;
 
   signal sign_x, sign_y                     : STD_LOGIC;
@@ -129,10 +147,18 @@ architecture RTL of TEST_FINALE is
 
   signal intermediate_exp : STD_LOGIC_VECTOR(9 downto 0);
 
+  signal intermediate_exp_1 : STD_LOGIC_VECTOR(11 downto 0);
+
+  signal offset_from_rounder : STD_LOGIC_VECTOR(11 downto 0);
+
   signal fixed_exp    : STD_LOGIC_VECTOR(7 downto 0);
   signal fixed_mantix : STD_LOGIC_VECTOR(22 downto 0);
 
-  signal rounded_mantix : STD_LOGIC_VECTOR(22 downto 0);
+  signal rounded_mantix     : STD_LOGIC_VECTOR(22 downto 0);
+  signal rounded_exp        : STD_LOGIC_VECTOR(9 downto 0);
+  signal rounder_sub        : STD_LOGIC;
+  signal rounder_offset     : STD_LOGIC_VECTOR(4 downto 0);
+  signal rounder_sub_vector : STD_LOGIC_VECTOR(11 downto 0);
 
   signal temp_result : STD_LOGIC_VECTOR(31 downto 0);
 begin
@@ -140,9 +166,11 @@ begin
   oppsY: OPERANDS_SPLITTER port map (Y, sign_y, initial_exp_y, initial_mantix_y);
 
   sign <= sign_x xor sign_y;
+  
   edge_cases: EDGE_CASES_HANDLER port map (X, Y, zero_flag, invalid_flag, inf_flag, both_denorm_flag);
 
   mantix_fixer_x: MANTIX_FIXER port map (initial_mantix_x, initial_exp_x, significant_mantix_x, offset_x);
+
   mantix_fixer_y: MANTIX_FIXER port map (initial_mantix_y, initial_exp_y, significant_mantix_y, offset_y);
 
   offset_y_8         <= "000" & offset_y;
@@ -154,15 +182,19 @@ begin
   exp_add: EXP_ADDER port map (initial_exp_x, initial_exp_y, exponents_sum);
 
   bias_calc: CLA_8 port map (X => "01111111", Y => offset_to_subtract, S => bias_8, Cin => '0', Cout => bias(8));
+
   bias(7 downto 0) <= bias_8;
 
   bias_sub: BIAS_SUBTRACTOR port map (exponents_sum, bias, intermediate_exp);
 
-  roundr: ROUNDER port map (mantix_product, rounded_mantix, open, open);
-  -- TODO: Change intermediate_exp to rounder's output, idem for mantix_out
-  result_fix: RESULT_FIXER port map (intermediate_exp, rounded_mantix, fixed_exp, fixed_mantix);
+  roundr: ROUNDER port map (mantix_product, rounded_mantix, rounder_offset, rounder_sub);
+
+  exp_calc: FINAL_EXP_CALCULATOR port map (intermediate_exp, rounder_offset, rounder_sub, rounded_exp);
+
+  result_fix: RESULT_FIXER port map (rounded_exp, rounded_mantix, fixed_exp, fixed_mantix);
 
   temp_result <= sign & fixed_exp & fixed_mantix;
+
   output_l: OUTPUT_LOGIC port map (temp_result, zero_flag, invalid_flag, inf_flag, both_denorm_flag, P, invalid);
 
 end architecture;

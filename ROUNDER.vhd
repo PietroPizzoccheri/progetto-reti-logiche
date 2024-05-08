@@ -65,23 +65,23 @@ begin
       OFFSET <= "11000";
       SHIFTED <= SHIFTED_TEMP;
       SUB <= '1';
+    end if;
+    if (MANTIX(47) = '1') then
+      SHIFTED <= MANTIX(47 - 1 downto 24);
+      OFFSET <= "00001";
+      SUB <= '0';
     else
-      if (MANTIX(47) = '1') then
-        SHIFTED <= MANTIX(47 - 1 downto 24);
-        OFFSET <= "00001";
+      if (MANTIX(46) = '1') then
+        SHIFTED <= MANTIX(47 - 2 downto 23);
+        OFFSET <= "00000";
         SUB <= '0';
       else
-        if (MANTIX(46) = '1') then
-          SHIFTED <= MANTIX(47 - 2 downto 23);
-          OFFSET <= "00000";
-          SUB <= '0';
-        else
-          OFFSET <= OFFSET_SIG;
-          SHIFTED <= SHIFTED_TEMP;
-          SUB <= '1';
-        end if;
+        OFFSET <= OFFSET_SIG;
+        SHIFTED <= SHIFTED_TEMP;
+        SUB <= '1';
       end if;
     end if;
+
   end process;
 end architecture;
 
