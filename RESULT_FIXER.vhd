@@ -3,7 +3,7 @@ library IEEE;
 
   -- 15 ns to comput
 
-entity EXP_FIXER is
+entity RESULT_FIXER is
   port (
     INTERMEDIATE_EXP    : in  STD_LOGIC_VECTOR(9 downto 0);
     INTERMEDIATE_MANTIX : in  STD_LOGIC_VECTOR(22 downto 0);
@@ -12,7 +12,7 @@ entity EXP_FIXER is
   );
 end entity;
 
-architecture RTL of EXP_FIXER is
+architecture RTL of RESULT_FIXER is
 
   component CLA_9 is
     port (
@@ -23,8 +23,20 @@ architecture RTL of EXP_FIXER is
     );
   end component;
 
+  component DENORMALIZER is
+    port (
+      MANTIX  : in  std_logic_vector(22 downto 0);
+      OFFSET  : in  std_logic_vector(4 downto 0);
+      SHIFTED : out std_logic_vector(22 downto 0)
+    );
+  end component;
+
   signal TEMP_S    : std_logic_vector(9 downto 0);
   signal TEMP_COUT : std_logic;
+
+  signal DENORM_OFFSET_SIG : std_logic_vector(4 downto 0);
+
+  signal MANTIX_DENORM : std_logic_vector(22 downto 0);
 
 begin
 
@@ -35,16 +47,24 @@ begin
       X    => INTERMEDIATE_EXP(8 downto 0), -- Discarding the MSP becuase its just a sign extension since the minimum number we can have from the previous subtraction is -150 wich is a 9 bit number
       Y    => "000010110",
       Cin  => '0',
-      S    => TEMP_S(8 downto 0),
+      S    => TEMP_S(8 downto 0),           -- somma fra esponente e 22
       Cout => TEMP_COUT
+    );
+
+  denorm: DENORMALIZER
+    port map (
+      MANTIX  => INTERMEDIATE_MANTIX,
+      OFFSET  => DENORM_OFFSET_SIG,
+      SHIFTED => MANTIX_DENORM
     );
 
   -- Extend the sign bit
   -- We assume that INTERMEDIATE_EXP is a 9 bit number NEGATIVE number. otherwise TEMP_S will not be taken into account
-  TEMP_S(9) <= TEMP_COUT when (INTERMEDIATE_EXP(8) = '1') and ((TEMP_S(8) = '1' and TEMP_COUT = '0') or (TEMP_S(8) = '0' and TEMP_COUT = '1')) else TEMP_S(8);
+  DENORM_OFFSET_SIG <= TEMP_S(4 downto 0);
+  TEMP_S(9)         <= TEMP_COUT when ((INTERMEDIATE_EXP(8) = '0')) and ((TEMP_S(8) = '1' and TEMP_COUT = '0') or (TEMP_S(8) = '0' and TEMP_COUT = '1')) else TEMP_S(8);
 
   -- Check if the exponent is overflown
-  process (INTERMEDIATE_EXP)
+  process (INTERMEDIATE_EXP, TEMP_S, DENORM_OFFSET_SIG)
   begin
     -- The number is positive and The exponent is larger than 254
     if (INTERMEDIATE_EXP(9) = '0') and (INTERMEDIATE_EXP(8) = '1') then
@@ -58,9 +78,9 @@ begin
         -- Its a certain underflow
         EXP <= "00000000";
         MANTIX <= "00000000000000000000000";
-        else
+      else
         EXP <= "00000000"; -- denormalized number (so we set the exp to zero)
-        -- MANTIX da shiftare a dx di temp_s(ultimi 5 bit di temp_s in realtà) posizioni
+        MANTIX <= MANTIX_DENORM; -- da shiftare a dx di temp_s(ultimi 5 bit di temp_s in realtà) posizioni
       end if;
     else
       -- Number its ok (either a normal number)

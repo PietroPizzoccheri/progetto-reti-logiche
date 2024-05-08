@@ -2,13 +2,13 @@
 library ieee;
   use ieee.std_logic_1164.all;
 
-entity TB_EXP_FIXER is
+entity TB_RESULT_FIXER is
 end entity;
 
-architecture behavior of TB_EXP_FIXER is
+architecture behavior of TB_RESULT_FIXER is
 
   -- Component Declaration for the Unit Under Test (UUT)
-  component EXP_FIXER
+  component RESULT_FIXER
     port (
       INTERMEDIATE_EXP    : in  std_logic_vector(9 downto 0);
       INTERMEDIATE_MANTIX : in  std_logic_vector(22 downto 0);
@@ -33,7 +33,7 @@ architecture behavior of TB_EXP_FIXER is
 begin
 
   -- Instantiate the Unit Under Test (UUT)
-  uut: EXP_FIXER
+  uut: RESULT_FIXER
     port map (
       INTERMEDIATE_EXP    => INTERMEDIATE_EXP,
       INTERMEDIATE_MANTIX => INTERMEDIATE_MANTIX,
