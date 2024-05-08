@@ -1,7 +1,7 @@
 library IEEE;
   use IEEE.STD_LOGIC_1164.all;
 
-  -- 15 ns to comput
+  -- 20 ns to compute
 
 entity RESULT_FIXER is
   port (
