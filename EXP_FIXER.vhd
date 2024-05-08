@@ -1,6 +1,8 @@
 library IEEE;
   use IEEE.STD_LOGIC_1164.all;
 
+  -- 15 ns to comput
+
 entity EXP_FIXER is
   port (
     INTERMEDIATE_EXP    : in  STD_LOGIC_VECTOR(9 downto 0);
@@ -21,17 +23,17 @@ architecture RTL of EXP_FIXER is
     );
   end component;
 
-  signal TEMP_S    : std_logic_vector(8 downto 0);
+  signal TEMP_S    : std_logic_vector(9 downto 0);
   signal TEMP_COUT : std_logic;
 
 begin
 
-  -- Check if the number is >= -23, if so, it is reparable otherwise is a certain underflow
-  -- EXP + 23 >= 0
+  -- Check if the number is >= -22, if so, it is reparable otherwise is a certain underflow
+  -- EXP + 22 >= 0
   underflow_check: CLA_9
     port map (
       X    => INTERMEDIATE_EXP(8 downto 0), -- Discarding the MSP becuase its just a sign extension since the minimum number we can have from the previous subtraction is -150 wich is a 9 bit number
-      Y    => "000010111",
+      Y    => "000010110",
       Cin  => '0',
       S    => TEMP_S(8 downto 0),
       Cout => TEMP_COUT
@@ -52,13 +54,16 @@ begin
       -- If the number is negative it could possibly be an underflow
     elsif (INTERMEDIATE_EXP(9) = '1') then
       -- If TEMP_S is less than 0 (So its negative, with the MSB to 1), then its an underflow
-      if (TEMP_S'high = '1') then
+      if (TEMP_S(9) = '1') then
         -- Its a certain underflow
         EXP <= "00000000";
-        MANTIX <= "00000000000000000000001";
+        MANTIX <= "00000000000000000000000";
+        else
+        EXP <= "00000000"; -- denormalized number (so we set the exp to zero)
+        -- MANTIX da shiftare a dx di temp_s(ultimi 5 bit di temp_s in realtà) posizioni
       end if;
     else
-      -- Number its ok (either a normal number or a reparable underflow)
+      -- Number its ok (either a normal number)
       EXP <= INTERMEDIATE_EXP(7 downto 0);
       MANTIX <= INTERMEDIATE_MANTIX;
     end if;
