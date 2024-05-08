@@ -32,8 +32,8 @@ begin
   EXP_2_IS_ZERO <= not(E2(0) or E2(1) or E2(2) or E2(3) or E2(4) or E2(5) or E2(6) or E2(7));
 
   -- If the number was denormalized (exponent is zero), then we need to set his exponent to -126
-  TEMP_E1 <= E1 when EXP_1_IS_ZERO = '0' else "10000010";
-  TEMP_E2 <= E2 when EXP_2_IS_ZERO = '0' else "10000010";
+  TEMP_E1 <= E1 when EXP_1_IS_ZERO = '0' else "00000001";
+  TEMP_E2 <= E2 when EXP_2_IS_ZERO = '0' else "00000001";
 
   adder: CLA_8
     port map (
@@ -47,5 +47,5 @@ begin
   SUM(7 downto 0) <= TEMP_SUM;
   -- We need to consider the Carry in case of overflow, othwerwise we extend the sign of the sum
   -- There is an "overflow" only if the signs of the operands are identical AND the sign bit of the result and that carry-out are not identical. If the signs of the operands are different, then there cannot be an overflow, regardless of the state of the carry-out
-  SUM(8) <= COUT_TEMP when ((TEMP_E1(7) = '1' and TEMP_E2(7) = '1') or (TEMP_E1(7) = '0' and TEMP_E2(7) = '0')) and ((TEMP_SUM(7) = '1' and COUT_TEMP = '0') or (TEMP_SUM(7) = '0' and COUT_TEMP = '1')) else TEMP_SUM(7);
+  SUM(8) <= COUT_TEMP;
 end architecture;

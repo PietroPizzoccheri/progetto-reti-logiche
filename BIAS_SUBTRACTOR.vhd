@@ -38,4 +38,5 @@ begin
   S(8 downto 0) <= TEMP_SUM(8 downto 0);
   -- BIAS will always be negative since we are subtracting it
   S(9) <= COUT_TEMP when (EXP(8) = '1') and ((TEMP_SUM(8) = '1' and COUT_TEMP = '0') or (TEMP_SUM(8) = '0' and COUT_TEMP = '1')) else TEMP_SUM(8);
+  
 end architecture;
