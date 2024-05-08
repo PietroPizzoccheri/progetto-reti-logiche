@@ -25,12 +25,14 @@ architecture RTL of MANTIX_FIXER is
   signal EXP_IS_ZERO : STD_LOGIC;
   signal MANTIX_TEMP : STD_LOGIC_VECTOR(23 downto 0);
   signal OFFSET_TEMP : STD_LOGIC_VECTOR(4 downto 0);
+  signal DENORMALIZED_MANTIX_TEMP : STD_LOGIC_VECTOR(23 downto 0);
 begin
   EXP_IS_ZERO <= not(exp(0) or exp(1) or exp(2) or exp(3) or exp(4) or exp(5) or exp(6) or exp(7));
-
+  DENORMALIZED_MANTIX_TEMP <= "0" & MANTIX; -- Adds a 0 in front of the mantix to make it 24 bits
+  
   n: NORMALIZER
     port map (
-      MANTIX  => "0" & MANTIX, -- Adds a 0 in front of the mantix to make it 24 bits
+      MANTIX  => DENORMALIZED_MANTIX_TEMP, 
       SHIFTED => MANTIX_TEMP,
       OFFSET  => OFFSET_TEMP
     );

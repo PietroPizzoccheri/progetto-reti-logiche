@@ -1,7 +1,7 @@
 library IEEE;
   use IEEE.STD_LOGIC_1164.all;
 
-  -- 20 ns to compute
+  -- 15 ns to comput
 
 entity RESULT_FIXER is
   port (
@@ -64,7 +64,7 @@ begin
   TEMP_S(9)         <= TEMP_COUT when ((INTERMEDIATE_EXP(8) = '0')) and ((TEMP_S(8) = '1' and TEMP_COUT = '0') or (TEMP_S(8) = '0' and TEMP_COUT = '1')) else TEMP_S(8);
 
   -- Check if the exponent is overflown
-  process (INTERMEDIATE_EXP, TEMP_S, DENORM_OFFSET_SIG)
+  process (INTERMEDIATE_EXP, INTERMEDIATE_MANTIX, TEMP_S, DENORM_OFFSET_SIG)
   begin
     -- The number is positive and The exponent is larger than 254
     if (INTERMEDIATE_EXP(9) = '0') and (INTERMEDIATE_EXP(8) = '1') then
