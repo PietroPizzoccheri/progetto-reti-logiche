@@ -44,7 +44,7 @@ begin
       P              => P,
       invalid_output => invalid_output
     );
-    
+
 
   -- Clock process definitions
 
@@ -100,16 +100,38 @@ begin
     expected_invalid_output <= '0';
     assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 3 failed" severity error;
 
+    -- Test 6
+    input_X <= "11111111111111111111111111111111";
+    input_Y <= "00001100000001111111111100000000";
     wait for CLK_period;
     expected_output <= "10111110011000111000010001010010";
     expected_invalid_output <= '0';
     assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 4 failed" severity error;
 
+    -- Test 7
+    input_X <= "";
+    input_Y <= "";
     wait for CLK_period;
     expected_output <= "11111111100000000000000000000000";
     expected_invalid_output <= '0';
     assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 5 failed" severity error;
 
+    -- Test 8
+    input_X <= "";
+    input_Y <= "";
+    wait for CLK_period;
+    expected_output <= "11111111111111111111111111111111";
+    expected_invalid_output <= '0';
+    assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 6 failed" severity error;
+
+    -- Test 9
+    input_X <= "10000000011111111111100001111111";
+    input_Y <= "00000000000001111111111101100000";
+    wait for CLK_period;
+    expected_output <= "";
+    expected_invalid_output <= '0';
+    assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 7 failed" severity error;
+    
     wait;
   end process;
 
