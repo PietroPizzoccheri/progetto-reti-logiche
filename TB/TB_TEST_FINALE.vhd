@@ -81,13 +81,13 @@ begin
     assert  (output_final = expected_output) and (invalid_final = expected_invalid) report "Test 4 failed" severity error;
 
     -- Test 5
-    --input_X <= "11111111100000000000000000000000";
-    --input_Y <= "01101111011110000000000100000011";
+    input_X <= "11111111100000000000000000000000";
+    input_Y <= "01101111011110000000000100000011";
 
-    --expected_output <= "11111111100000000000000000000000";
-    --expected_invalid <= '0';
-    --wait for 50 ns;
-    --assert  (output_final = expected_output) and (invalid_final = expected_invalid) report "Test 5 failed" severity error;
+    expected_output <= "11111111100000000000000000000000";
+    expected_invalid <= '0';
+    wait for 50 ns;
+    assert  (output_final = expected_output) and (invalid_final = expected_invalid) report "Test 5 failed" severity error;
     
 
     wait;

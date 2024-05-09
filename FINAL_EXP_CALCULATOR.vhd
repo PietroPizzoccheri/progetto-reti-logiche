@@ -32,7 +32,7 @@ architecture RTL of FINAL_EXP_CALCULATOR is
 
 begin
 
-  EXP_12  <= EXP(9) & EXP(9)  & EXP; --extend the sign
+  EXP_12  <= EXP(9) & EXP(9) & EXP; --extend the sign
   OFFSET_12 <= "0000000" & OFFSET;
   extended_SUB <= (others => SUB);
   OFFSET_TO_ADD <= extended_SUB xor OFFSET_12;

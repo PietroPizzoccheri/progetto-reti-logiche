@@ -71,8 +71,7 @@ architecture RTL of TEST_FINALE is
     port (
       MANTIX     : in  STD_LOGIC_VECTOR(22 downto 0);
       exp        : in  STD_LOGIC_VECTOR(7 downto 0);
-      MANTIX_OUT : out STD_LOGIC_VECTOR(23 downto 0); -- Returns the Significant Normalized (The mantix with a 1 in front of it)
-      OFFSET     : out STD_LOGIC_VECTOR(4 downto 0)   -- Returns the offset of the mantix
+      MANTIX_OUT : out STD_LOGIC_VECTOR(23 downto 0)
     );
   end component;
 
@@ -108,7 +107,7 @@ architecture RTL of TEST_FINALE is
       zero               : in  std_logic;
       invalid_in         : in  std_logic;
       inf                : in  std_logic;
-      overflow_underflow : in  std_logic;
+      both_denorm : in  std_logic;
       result_out         : out std_logic_vector(31 downto 0);
       invalid_out        : out std_logic
     );
@@ -169,21 +168,13 @@ begin
   
   edge_cases: EDGE_CASES_HANDLER port map (X, Y, zero_flag, invalid_flag, inf_flag, both_denorm_flag);
 
-  mantix_fixer_x: MANTIX_FIXER port map (initial_mantix_x, initial_exp_x, significant_mantix_x, offset_x);
+  mantix_fixer_x: MANTIX_FIXER port map (initial_mantix_x, initial_exp_x, significant_mantix_x);
 
-  mantix_fixer_y: MANTIX_FIXER port map (initial_mantix_y, initial_exp_y, significant_mantix_y, offset_y);
-
-  offset_y_8         <= "000" & offset_y;
-  offset_x_8         <= "000" & offset_x;
-  offset_to_subtract <= offset_y_8 or offset_x_8;
+  mantix_fixer_y: MANTIX_FIXER port map (initial_mantix_y, initial_exp_y, significant_mantix_y);
 
   mantix_multiplier: MUL_24_CLA port map (significant_mantix_x, significant_mantix_y, mantix_product);
 
   exp_add: EXP_ADDER port map (initial_exp_x, initial_exp_y, exponents_sum);
-
-  --bias_calc: CLA_8 port map (X => "01111111", Y => offset_to_subtract, S => bias_8, Cin => '0', Cout => bias(8));
-
-  --bias(7 downto 0) <= bias_8;
 
   bias_sub: BIAS_SUBTRACTOR port map (exponents_sum, "001111111", intermediate_exp);
 
@@ -195,7 +186,16 @@ begin
 
   temp_result <= sign & fixed_exp & fixed_mantix;
 
-  output_l: OUTPUT_LOGIC port map (temp_result, zero_flag, invalid_flag, inf_flag, both_denorm_flag, P, invalid);
+  outp: OUTPUT_LOGIC port map(
+      result_in => temp_result,
+      zero => zero_flag,
+      invalid_in => invalid_flag,
+      inf => inf_flag,
+      both_denorm => both_denorm_flag,
+      result_out => P,
+      invalid_out => invalid
+  );
+  
 
 end architecture;
 

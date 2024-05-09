@@ -3,13 +3,13 @@ library IEEE;
 
 entity OUTPUT_LOGIC is
   port (
-    result_in          : in  std_logic_vector(31 downto 0);
-    zero               : in  std_logic;
-    invalid_in         : in  std_logic;
-    inf                : in  std_logic;
-    overflow_underflow : in  std_logic;
-    result_out         : out std_logic_vector(31 downto 0);
-    invalid_out        : out std_logic
+    result_in   : in  std_logic_vector(31 downto 0);
+    zero        : in  std_logic;
+    invalid_in  : in  std_logic;
+    inf         : in  std_logic;
+    both_denorm : in  std_logic;
+    result_out  : out std_logic_vector(31 downto 0);
+    invalid_out : out std_logic
   );
 end entity;
 
@@ -17,11 +17,15 @@ architecture rtl of OUTPUT_LOGIC is
   constant UnsignedInfinity : std_logic_vector(30 downto 0) := "1111111100000000000000000000000";
 begin
 
-  rl: process (result_in, zero, inf, invalid_in, overflow_underflow)
+  rl: process (result_in, zero, inf, invalid_in, both_denorm)
   begin
     invalid_out <= '0';
-    if invalid_in = '1' or overflow_underflow = '1' then
+    if invalid_in = '1' then
       result_out <= (others => '-');
+      invalid_out <= '1';
+    elsif both_denorm = '1' then
+      -- If both numbers are denormalized, the result is certainly an underflow
+      result_out <= (others => '0');
       invalid_out <= '1';
     elsif zero = '1' then
       result_out <= (others => '0');
