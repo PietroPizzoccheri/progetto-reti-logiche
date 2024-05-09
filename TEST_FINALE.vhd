@@ -181,11 +181,11 @@ begin
 
   exp_add: EXP_ADDER port map (initial_exp_x, initial_exp_y, exponents_sum);
 
-  bias_calc: CLA_8 port map (X => "01111111", Y => offset_to_subtract, S => bias_8, Cin => '0', Cout => bias(8));
+  --bias_calc: CLA_8 port map (X => "01111111", Y => offset_to_subtract, S => bias_8, Cin => '0', Cout => bias(8));
 
-  bias(7 downto 0) <= bias_8;
+  --bias(7 downto 0) <= bias_8;
 
-  bias_sub: BIAS_SUBTRACTOR port map (exponents_sum, bias, intermediate_exp);
+  bias_sub: BIAS_SUBTRACTOR port map (exponents_sum, "001111111", intermediate_exp);
 
   roundr: ROUNDER port map (mantix_product, rounded_mantix, rounder_offset, rounder_sub);
 

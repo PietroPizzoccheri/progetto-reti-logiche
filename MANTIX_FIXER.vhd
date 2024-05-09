@@ -29,19 +29,19 @@ architecture RTL of MANTIX_FIXER is
 begin
   EXP_IS_ZERO <= not(exp(0) or exp(1) or exp(2) or exp(3) or exp(4) or exp(5) or exp(6) or exp(7));
   DENORMALIZED_MANTIX_TEMP <= "0" & MANTIX; -- Adds a 0 in front of the mantix to make it 24 bits
-  
+
   n: NORMALIZER
     port map (
       MANTIX  => DENORMALIZED_MANTIX_TEMP, 
-      SHIFTED => MANTIX_TEMP,
+      SHIFTED => open,
       OFFSET  => OFFSET_TEMP
     );
 
-  p: process (EXP_IS_ZERO, OFFSET_TEMP)
+  p: process (EXP_IS_ZERO, OFFSET_TEMP , DENORMALIZED_MANTIX_TEMP, MANTIX)
   begin
     if EXP_IS_ZERO = '1' then
       -- The mantix was DENORMALIZED and has been normalized
-      MANTIX_OUT <= MANTIX_TEMP;
+      MANTIX_OUT <= DENORMALIZED_MANTIX_TEMP;
       OFFSET <= OFFSET_TEMP;
     else
       -- The mantix was already NORMALIZED
