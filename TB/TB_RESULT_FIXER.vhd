@@ -80,8 +80,7 @@ begin
     expected_MANTIX <= "00000000000111000000000";
     wait for 50 ns;
     assert (EXP = expected_EXP and MANTIX = expected_MANTIX) report "Test 4 failed" severity error;
-    
-    
+
     wait;
   end process;
 

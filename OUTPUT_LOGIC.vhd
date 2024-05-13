@@ -26,7 +26,6 @@ begin
     elsif both_denorm = '1' then
       -- If both numbers are denormalized, the result is certainly an underflow
       result_out <= (others => '0');
-      invalid_out <= '1';
     elsif zero = '1' then
       result_out <= (others => '0');
     elsif inf = '1' then
