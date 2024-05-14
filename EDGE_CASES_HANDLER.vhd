@@ -2,7 +2,7 @@
 library IEEE;
   use IEEE.STD_LOGIC_1164.all;
 
-  -- 17/20 ns to compute correctly
+  -- 7/8 ns max to compute correctly
 
 entity EDGE_CASES_HANDLER is
   port (
@@ -85,41 +85,13 @@ begin
               nan    => nan_Y,
               inf    => inf_Y);
 
-  -- check for edge case combinations
-  zero        <= (zero_X and norm_Y) or (norm_X and zero_Y) or (zero_X and denorm_Y) or (denorm_X and zero_Y) or (zero_X and zero_Y);
-  invalid     <= (nan_X and norm_Y) or (norm_X and nan_Y) or (nan_X and denorm_Y) or (denorm_X and nan_Y) or (nan_X and zero_Y) or (zero_X and nan_Y) or (nan_X and inf_Y) or (inf_x and nan_Y) or (zero_X and inf_Y) or (inf_X and zero_Y) or (nan_X and nan_Y);
-  inf         <= (inf_X and norm_Y) or (norm_X and inf_Y) or (inf_X and denorm_Y) or (denorm_X and inf_Y) or (inf_X and inf_Y) or (inf_Y and inf_X);
-  both_denorm <= (denorm_X and denorm_Y);
-  --X_case <= norm_X & denorm_X & zero_X & inf_X & nan_X; -- truth table for X
-  --Y_case <= norm_Y & denorm_X & zero_Y & inf_Y & nan_Y; -- truth table for Y
-  -- truth table 
-  --f <=  "001" when X_case = NaN and Y_case = NaN else
-  --      "001" when X_case = NaN and Y_case = INFINITY else
-  --      "001" when X_case = NaN and Y_case = CONST else
-  --      "001" when X_case = NaN and Y_case = DENORM else
-  --      "001" when X_case = NaN and Y_case = NORM else
-  --      "001" when X_case = INFINITY and Y_case = NaN else
-  --      "010" when X_case = INFINITY and Y_case = INFINITY else
-  --      "001" when X_case = INFINITY and Y_case = CONST else
-  --      "010" when X_case = INFINITY and Y_case = DENORM else
-  --      "010" when X_case = INFINITY and Y_case = NORM else
-  --      "001" when X_case = CONST and Y_case = NaN else
-  --      "001" when X_case = CONST and Y_case = INFINITY else
-  --      "100" when X_case = CONST and Y_case = CONST else
-  --      "100" when X_case = CONST and Y_case = DENORM else
-  --      "100" when X_case = CONST and Y_case = NORM else
-  --      "001" when X_case = DENORM and Y_case = NaN else
-  --      "010" when X_case = DENORM and Y_case = INFINITY else
-  --      "100" when X_case = DENORM and Y_case = CONST else
-  --      "000" when X_case = DENORM and Y_case = DENORM else
-  --      "000" when X_case = DENORM and Y_case = NORM else
-  --      "001" when X_case = NORM and Y_case = NaN else
-  --      "010" when X_case = NORM and Y_case = INFINITY else
-  --      "100" when X_case = NORM and Y_case = CONST else
-  --      "000" when X_case = NORM and Y_case = DENORM else
-  --       "000" when X_case = NORM and Y_case = NORM;
-  --invalid <= f(0);
-  --inf     <= f(1);
-  --zero    <= f(2);
+  compute: process (zero_X, zero_Y, inf_X, inf_Y, nan_X, nan_Y, norm_X, norm_Y, denorm_X, denorm_Y)
+  begin
+    -- check for edge case combinations
+    zero <= (zero_X and norm_Y) or (norm_X and zero_Y) or (zero_X and denorm_Y) or (denorm_X and zero_Y) or (zero_X and zero_Y);
+    invalid <= (nan_X and norm_Y) or (norm_X and nan_Y) or (nan_X and denorm_Y) or (denorm_X and nan_Y) or (nan_X and zero_Y) or (zero_X and nan_Y) or (nan_X and inf_Y) or (inf_x and nan_Y) or (zero_X and inf_Y) or (inf_X and zero_Y) or (nan_X and nan_Y);
+    inf <= (inf_X and norm_Y) or (norm_X and inf_Y) or (inf_X and denorm_Y) or (denorm_X and inf_Y) or (inf_X and inf_Y) or (inf_Y and inf_X);
+    both_denorm <= (denorm_X and denorm_Y);
+  end process;
 end architecture;
 

@@ -2,7 +2,7 @@
 library IEEE;
   use IEEE.STD_LOGIC_1164.all;
 
-  -- 12 ns to compute correctly
+  -- 6 ns to compute correctly
 
 entity EXP_ADDER is
   port (
@@ -44,8 +44,11 @@ begin
       Cout => COUT_TEMP
     );
 
+compute : process (TEMP_SUM, COUT_TEMP)
+begin
   SUM(7 downto 0) <= TEMP_SUM;
   -- We need to consider the Carry in case of overflow, othwerwise we extend the sign of the sum
   -- There is an "overflow" only if the signs of the operands are identical AND the sign bit of the result and that carry-out are not identical. If the signs of the operands are different, then there cannot be an overflow, regardless of the state of the carry-out
   SUM(8) <= COUT_TEMP;
+  end process;
 end architecture;

@@ -42,7 +42,7 @@ architecture behavior of TB_PIPELINED_MULT is
   constant NotANumber       : STD_LOGIC_VECTOR(31 downto 0) := "11111111110000001000010000000000";
 
   -- Clock period definitions
-  constant CLK_period : time := 70 ns;
+  constant CLK_period : time := 30 ns;
 begin
 
   -- Instantiate the Unit Under Test (UUT)
@@ -78,8 +78,7 @@ begin
 
     -- Edge cases tests
     -- Zero results: we should get 0 as a result
-    expected_output <= Zero;
-    expected_invalid_output <= '0';
+    
 
     -- 0 * 0 = 0
     input_X <= Zero;
@@ -96,15 +95,16 @@ begin
     input_Y <= LargestDenorm;
     wait for CLK_period;
 
+    expected_output <= Zero;
+    expected_invalid_output <= '0';
+
     assert (P = expected_output) and (invalid_output = expected_invalid_output) severity error;
     wait for CLK_period;
     assert (P = expected_output) and (invalid_output = expected_invalid_output) severity error;
     wait for CLK_period;
     assert (P = expected_output) and (invalid_output = expected_invalid_output) severity error;
 
-    -- Infinity results: we should get Infinity as a result
-    expected_output <= PositiveInfinity;
-    expected_invalid_output <= '0';
+    
 
     -- Infinity * Infinity = +Infinity
     input_X <= PositiveInfinity;
@@ -122,15 +122,17 @@ begin
     input_X <= PositiveInfinity;
     input_Y <= LargestDenorm;
 
+    -- Infinity results: we should get Infinity as a result
+    expected_output <= PositiveInfinity;
+    expected_invalid_output <= '0';
+
     assert (P = expected_output) and (invalid_output = expected_invalid_output) severity error;
     wait for CLK_period;
     assert (P = expected_output) and (invalid_output = expected_invalid_output) severity error;
     wait for CLK_period;
     assert (P = expected_output) and (invalid_output = expected_invalid_output) severity error;
 
-    -- Invalid results: we should get invalid as a result since the multiplication is not possible
-    expected_output <= (others => '-');
-    expected_invalid_output <= '1';
+    
 
     -- NaN * NaN = NaN
     input_X <= NotANumber;
@@ -147,6 +149,10 @@ begin
     input_Y <= LargestDenorm;
     wait for CLK_period;
     assert (invalid_output = expected_invalid_output) severity error;
+
+    -- Invalid results: we should get invalid as a result since the multiplication is not possible
+    expected_output <= (others => '-');
+    expected_invalid_output <= '1';
 
     -- NaN * 0 = NaN
     input_X <= NotANumber;

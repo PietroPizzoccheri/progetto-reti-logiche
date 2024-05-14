@@ -2,7 +2,7 @@
 library IEEE;
   use IEEE.STD_LOGIC_1164.all;
 
-  -- 12 ns to compute
+  -- 6/7 ns to compute
 
  -- sums 2 unsigned numbers and the result is signed
 entity BIAS_SUBTRACTOR is

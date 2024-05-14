@@ -50,7 +50,7 @@ end entity;
 
 architecture rtl of OFFSET_ENCODER is
 begin
-  process (X)
+  compute: process (X)
   begin
     Z <= '0';
     if X(23) = '1' then

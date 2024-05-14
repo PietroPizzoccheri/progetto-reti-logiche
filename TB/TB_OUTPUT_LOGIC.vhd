@@ -8,21 +8,21 @@ architecture behavior of TB_OUTPUT_LOGIC is
 
   component OUTPUT_LOGIC
     port (
-      result_in          : in  std_logic_vector(31 downto 0);
-      zero               : in  std_logic;
-      invalid_in         : in  std_logic;
-      inf                : in  std_logic;
+      result_in   : in  std_logic_vector(31 downto 0);
+      zero        : in  std_logic;
+      invalid_in  : in  std_logic;
+      inf         : in  std_logic;
       both_denorm : in  std_logic;
-      result_out         : out std_logic_vector(31 downto 0);
-      invalid_out        : out std_logic
+      result_out  : out std_logic_vector(31 downto 0);
+      invalid_out : out std_logic
     );
   end component;
 
   --Inputs
-  signal result_in          : std_logic_vector(31 downto 0) := (others => '0');
-  signal zero               : std_logic                     := '0';
-  signal invalid_in         : std_logic                     := '0';
-  signal inf                : std_logic                     := '0';
+  signal result_in   : std_logic_vector(31 downto 0) := (others => '0');
+  signal zero        : std_logic                     := '0';
+  signal invalid_in  : std_logic                     := '0';
+  signal inf         : std_logic                     := '0';
   signal both_denorm : std_logic                     := '0';
 
   --Outputs
@@ -40,13 +40,13 @@ begin
   -- Instantiate the Unit Under Test (UUT)
   uut: OUTPUT_LOGIC
     port map (
-      result_in          => result_in,
-      zero               => zero,
-      invalid_in         => invalid_in,
-      inf                => inf,
+      result_in   => result_in,
+      zero        => zero,
+      invalid_in  => invalid_in,
+      inf         => inf,
       both_denorm => both_denorm,
-      result_out         => result_out,
-      invalid_out        => invalid_out
+      result_out  => result_out,
+      invalid_out => invalid_out
     );
 
   -- Stimulus process
