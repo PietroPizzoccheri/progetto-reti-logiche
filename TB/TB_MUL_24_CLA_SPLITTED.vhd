@@ -5,13 +5,13 @@ library ieee;
   -- arithmetic functions with Signed or Unsigned values
   --USE ieee.numeric_std.ALL;
 
-entity TB_MUL_24_CLA is
+entity TB_MUL_24_CLA_SPLITTED is
 end entity;
 
-architecture behavior of TB_MUL_24_CLA is
+architecture behavior of TB_MUL_24_CLA_SPLITTED is
 
   -- Component Declaration for the Unit Under Test (UUT)
-  component MUL_24_CLA
+  component MUL_24_CLA_SPLITTED
     port (
       X : in  std_logic_vector(23 downto 0);
       Y : in  std_logic_vector(23 downto 0);
@@ -29,7 +29,7 @@ architecture behavior of TB_MUL_24_CLA is
 begin
 
   -- Instantiate the Unit Under Test (UUT)
-  uut: MUL_24_CLA
+  uut: MUL_24_CLA_SPLITTED
     port map (
       X => X,
       Y => Y,

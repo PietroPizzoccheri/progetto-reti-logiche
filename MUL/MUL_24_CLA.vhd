@@ -30,6 +30,7 @@ architecture rtl of MUL_24_CLA is
   signal T           : T_t;
   signal PARTIAL_SUM : T_temp_x;
 begin
+
   TEMP_X(0)      <= (23 downto 0 => '0') & X;
   PARTIAL_SUM(0) <= T(1);
 
