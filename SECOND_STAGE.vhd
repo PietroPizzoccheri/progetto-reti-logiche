@@ -54,7 +54,7 @@ architecture RTL of SECOND_STAGE is
     );
   end component;
 
-  component MUL_24_CLA is
+  component MUL_24_CLA_SPLITTED is
     port (
       X : in  std_logic_vector(23 downto 0);
       Y : in  std_logic_vector(23 downto 0);
@@ -80,7 +80,7 @@ begin
   REG_INF: REG_PP_1 port map (CLK, RST, inf_in, inf_out);
   REG_BOTH_DENORM: REG_PP_1 port map (CLK, RST, both_denorm_in, both_denorm_out);
 
-  MANTIX_MULT: MUL_24_CLA port map (REGOUT_MANTIX_X, REGOUT_MANTIX_Y, intermediate_mantix);
+  MANTIX_MULT: MUL_24_CLA_SPLITTED port map (REGOUT_MANTIX_X, REGOUT_MANTIX_Y, intermediate_mantix);
 
   EXP_ADD: EXP_ADDER port map (REGOUT_EXP_X, REGOUT_EXP_Y, exponents_sum);
 
