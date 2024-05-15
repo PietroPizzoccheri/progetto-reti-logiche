@@ -21,7 +21,6 @@ architecture rtl of CLA_4 is
     );
   end component;
 
-  -- Initialize signals to 0
   signal C : std_logic_vector(4 downto 0) := (others => '0'); -- Carry
   signal P : std_logic_vector(3 downto 0) := (others => '0'); -- Propagate
   signal G : std_logic_vector(3 downto 0) := (others => '0'); -- Generate
@@ -34,6 +33,7 @@ begin
   C(2) <= G(1) or (P(1) and G(0)) or (P(1) and P(0) and Cin);
   C(3) <= G(2) or (P(2) and G(1)) or (P(2) and P(1) and G(0)) or (P(2) and P(1) and P(0) and Cin);
   C(4) <= G(3) or (P(3) and G(2)) or (P(3) and P(2) and G(1)) or (P(3) and P(2) and P(1) and G(0)) or (P(3) and P(2) and P(1) and P(0) and Cin);
+
   -- Compute the first sum separately with the Cin the input
   first_FA: FA
     port map (

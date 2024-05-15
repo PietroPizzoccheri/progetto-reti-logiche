@@ -14,11 +14,11 @@ end entity;
 
 architecture RTL of RESULT_FIXER is
 
-  component CLA_9 is
+  component CLA_10 is
     port (
-      X, Y : in  std_logic_vector(8 downto 0);
+      X, Y : in  std_logic_vector(9 downto 0);
       Cin  : in  std_logic;
-      S    : out std_logic_vector(8 downto 0);
+      S    : out std_logic_vector(9 downto 0);
       Cout : out std_logic
     );
   end component;
@@ -31,24 +31,21 @@ architecture RTL of RESULT_FIXER is
     );
   end component;
 
-  signal TEMP_S    : std_logic_vector(9 downto 0);
-  signal TEMP_COUT : std_logic;
-
+  signal TEMP_S            : std_logic_vector(9 downto 0);
   signal DENORM_OFFSET_SIG : std_logic_vector(4 downto 0);
-
-  signal MANTIX_DENORM : std_logic_vector(22 downto 0);
+  signal MANTIX_DENORM     : std_logic_vector(22 downto 0);
 
 begin
 
   -- Check if the number is >= -22, if so, it is reparable otherwise is a certain underflow
   -- EXP + 22 >= 0
-  underflow_check: CLA_9
+  underflow_check: CLA_10
     port map (
-      X    => INTERMEDIATE_EXP(8 downto 0), -- Discarding the MSP becuase its just a sign extension since the minimum number we can have from the previous subtraction is -150 wich is a 9 bit number
-      Y    => "000010110",
+      X    => INTERMEDIATE_EXP,
+      Y    => "0000010110",
       Cin  => '0',
-      S    => TEMP_S(8 downto 0),           -- somma fra esponente e 22
-      Cout => TEMP_COUT
+      S    => TEMP_S, -- Exp + 22
+      Cout => open
     );
 
   denorm: DENORMALIZER
@@ -58,10 +55,10 @@ begin
       SHIFTED => MANTIX_DENORM
     );
 
-  -- Extend the sign bit
   -- We assume that INTERMEDIATE_EXP is a 9 bit number NEGATIVE number. otherwise TEMP_S will not be taken into account
   DENORM_OFFSET_SIG <= TEMP_S(4 downto 0);
-  TEMP_S(9)         <= TEMP_COUT when ((INTERMEDIATE_EXP(8) = '0')) and ((TEMP_S(8) = '1' and TEMP_COUT = '0') or (TEMP_S(8) = '0' and TEMP_COUT = '1')) else TEMP_S(8);
+  -- Extend the sign bit
+  -- TEMP_S(9)         <= TEMP_S(9) when ((INTERMEDIATE_EXP(8) = '0')) and ((TEMP_S(8) = '1' and TEMP_S(9) = '0') or (TEMP_S(8) = '0' and TEMP_S(9) = '1')) else TEMP_S(8);
 
   -- Check if the exponent is overflown
   process (INTERMEDIATE_EXP, INTERMEDIATE_MANTIX, TEMP_S, DENORM_OFFSET_SIG)

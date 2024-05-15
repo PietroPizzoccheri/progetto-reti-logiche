@@ -10,8 +10,6 @@ entity CLA_8 is
   );
 end entity;
 
--- Pag. 175
-
 architecture rtl of CLA_8 is
   component FA is
     port (
@@ -23,7 +21,6 @@ architecture rtl of CLA_8 is
     );
   end component;
 
-  -- Initialize signals to 0
   signal C : std_logic_vector(8 downto 0) := (others => '0'); -- Carry
   signal P : std_logic_vector(7 downto 0) := (others => '0'); -- Propagate
   signal G : std_logic_vector(7 downto 0) := (others => '0'); -- Generate
