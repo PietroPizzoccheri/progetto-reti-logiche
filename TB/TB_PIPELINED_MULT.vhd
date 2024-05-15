@@ -78,8 +78,6 @@ begin
 
     -- Edge cases tests
     -- Zero results: we should get 0 as a result
-    
-
     -- 0 * 0 = 0
     input_X <= Zero;
     input_Y <= Zero;
@@ -103,8 +101,6 @@ begin
     assert (P = expected_output) and (invalid_output = expected_invalid_output) severity error;
     wait for CLK_period;
     assert (P = expected_output) and (invalid_output = expected_invalid_output) severity error;
-
-    
 
     -- Infinity * Infinity = +Infinity
     input_X <= PositiveInfinity;
@@ -131,8 +127,6 @@ begin
     assert (P = expected_output) and (invalid_output = expected_invalid_output) severity error;
     wait for CLK_period;
     assert (P = expected_output) and (invalid_output = expected_invalid_output) severity error;
-
-    
 
     -- NaN * NaN = NaN
     input_X <= NotANumber;
@@ -221,6 +215,9 @@ begin
     expected_invalid_output <= '0';
     assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 5 failed" severity error;
 
+    -- Test 8: 0.1 * 0.2 = 0.02
+    input_X <= "00111101110011001100110011001101";
+    input_Y <= "00111110010011001100110011001101";
     wait for CLK_period;
     expected_output <= Zero; -- Test 6 Expected output
     expected_invalid_output <= '0';
@@ -230,6 +227,11 @@ begin
     expected_output <= "00111000110011000110001100000110"; -- Test 7 Expected output
     expected_invalid_output <= '0';
     assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 7 failed" severity error;
+
+    wait for CLK_period;
+    expected_output <= "00111100101000111101011100001010"; -- Test 8 Expected output
+    expected_invalid_output <= '0';
+    assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 8 failed" severity error;
     wait;
   end process;
 
