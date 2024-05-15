@@ -84,8 +84,6 @@ architecture structural of PIPELINED_MULT is
 
 begin
 
-  REG_X_IN: REG_PP_N generic map (32) port map (CLK, RST, X, REGOUT_X);
-  REG_Y_IN: REG_PP_N generic map (32) port map (CLK, RST, Y, REGOUT_Y);
 
 FIRST: FIRST_STAGE port map (
   CLK => CLK,
@@ -124,7 +122,7 @@ FIRST: FIRST_STAGE port map (
     intermediate_mantix => intermediate_mantix
   );
 
-  THRID: THIRD_STAGE port map (
+  THIRD: THIRD_STAGE port map (
     CLK => CLK,
     RST => RST,
     sign => sign_2_out,
@@ -138,7 +136,13 @@ FIRST: FIRST_STAGE port map (
     result_out => temp_p
   );
 
-  REG_P: REG_PP_N generic map (32) port map (CLK, RST, temp_p, P);
-  REG_P_INVALID: REG_PP_1 port map (CLK, RST, temp_invalid, invalid_output);
+
+  REG_X_IN: REG_PP_N generic map (32) port map (CLK, RST, X, REGOUT_X);
+  REG_Y_IN: REG_PP_N generic map (32) port map (CLK, RST, Y, REGOUT_Y);
+
+  REG_P_OUT: REG_PP_N generic map (32) port map (CLK, RST, temp_p, P);
+  REG_P_INVALID_OUT: REG_PP_1 port map (CLK, RST, temp_invalid, invalid_output);
+
+  
 end architecture;
 
