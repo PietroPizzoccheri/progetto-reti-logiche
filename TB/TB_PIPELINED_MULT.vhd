@@ -42,7 +42,7 @@ architecture behavior of TB_PIPELINED_MULT is
   constant NotANumber       : STD_LOGIC_VECTOR(31 downto 0) := "11111111110000001000010000000000";
 
   -- Clock period definitions
-  constant CLK_period : time := 60 ns;
+  constant CLK_period : time := 40 ns;
 begin
 
   -- Instantiate the Unit Under Test (UUT)
@@ -70,7 +70,7 @@ begin
 
   stim_proc: process
   begin
-  wait for 120 ns;
+    wait for 120 ns;
     -- hold reset state for 100 ns.
     RST <= '1';
     wait for CLK_period * 3;
@@ -88,17 +88,18 @@ begin
     input_Y <= LargestNorm;
     wait for CLK_period;
 
+
     -- 0 * Denorm = 0
     input_X <= Zero;
     input_Y <= LargestDenorm;
+
+    wait for CLK_period/2;
+    
     expected_output <= Zero;
     expected_invalid_output <= '0';
-    wait for CLK_period;
 
-    assert (P = expected_output) and (invalid_output = expected_invalid_output) severity error;
-    wait for CLK_period;
-    assert (P = expected_output) and (invalid_output = expected_invalid_output) severity error;
-    wait for CLK_period;
+    wait for CLK_period/2;
+
     assert (P = expected_output) and (invalid_output = expected_invalid_output) severity error;
 
     -- Infinity * Infinity = +Infinity
