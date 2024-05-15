@@ -37,7 +37,7 @@ architecture structural of PIPELINED_MULT is
 
   component FIRST_STAGE is
     port (
-      CLK, RST                        : in  std_logic;
+
       X, Y                            : in  std_logic_vector(31 downto 0);
       zero, invalid, inf, both_denorm : out std_logic;
       sign                            : out std_logic;
@@ -48,7 +48,7 @@ architecture structural of PIPELINED_MULT is
 
   component SECOND_STAGE is
     port (
-      CLK, RST                                        : in  std_logic;
+
       exp_x, exp_y                                    : in  std_logic_vector(7 downto 0);
       mantix_x, mantix_y                              : in  std_logic_vector(23 downto 0);
       sign_in                                         : in  std_logic;
@@ -62,7 +62,7 @@ architecture structural of PIPELINED_MULT is
 
   component THIRD_STAGE is
     port (
-      CLK, RST                        : in  std_logic;
+
       sign                            : in  std_logic;
       zero, invalid, inf, both_denorm : in  std_logic;
       intermediate_exp                : in  std_logic_vector(9 downto 0);
@@ -72,86 +72,101 @@ architecture structural of PIPELINED_MULT is
     );
   end component;
 
-  component REG_PP_32 is
-    port (
-      CLK : in  std_logic;
-      RST : in  std_logic;
-      X   : in  std_logic_vector(31 downto 0);
-      Y   : out std_logic_vector(31 downto 0)
-    );
-  end component;
 
   signal REGOUT_X, REGOUT_Y                                                  : std_logic_vector(31 downto 0);
   signal zero_1_out, invalid_1_out, inf_1_out, both_denorm_1_out, sign_1_out : std_logic;
   signal sign_2_out, zero_2_out, invalid_2_out, inf_2_out, both_denorm_2_out : std_logic;
-  signal exp_x, exp_y                                                        : std_logic_vector(7 downto 0);
-  signal mantix_x, mantix_y                                                  : std_logic_vector(23 downto 0);
-  signal intermediate_exp                                                    : std_logic_vector(9 downto 0);
-  signal intermediate_mantix                                                 : std_logic_vector(47 downto 0);
+  signal zero_1_in, invalid_1_in, inf_1_in, both_denorm_1_in, sign_1_in      : std_logic;
+  signal zero_2_in, invalid_2_in, inf_2_in, both_denorm_2_in, sign_2_in      : std_logic;
+  signal exp_x, exp_y, exp_x_out, exp_y_out                                  : std_logic_vector(7 downto 0);
+  signal mantix_x, mantix_y, mantix_x_out, mantix_y_out                      : std_logic_vector(23 downto 0);
+  signal intermediate_exp, intermediate_exp_out                              : std_logic_vector(9 downto 0);
+  signal intermediate_mantix, intermediate_mantix_out                        : std_logic_vector(47 downto 0);
   signal temp_p                                                              : std_logic_vector(31 downto 0);
   signal temp_invalid                                                        : std_logic;
 
 begin
 
-
-FIRST: FIRST_STAGE port map (
-  CLK => CLK,
-  RST => RST,
-  X => REGOUT_X,
-  Y => REGOUT_Y,
-  zero => zero_1_out,
-  invalid => invalid_1_out,
-  inf => inf_1_out,
-  both_denorm => both_denorm_1_out,
-  sign => sign_1_out,
-  exp_x => exp_x,
-  exp_y => exp_y,
-  fixed_mantix_x => mantix_x,
-  fixed_mantix_y => mantix_y
-);
-
-  SECOND: SECOND_STAGE port map (
-    CLK => CLK,
-    RST => RST,
-    exp_x => exp_x,
-    exp_y => exp_y,
-    mantix_x => mantix_x,
-    mantix_y => mantix_y,
-    sign_in => sign_1_out,
-    zero_in => zero_1_out,
-    invalid_in => invalid_1_out,
-    inf_in => inf_1_out,
-    both_denorm_in => both_denorm_1_out,
-    sign_out => sign_2_out,
-    zero_out => zero_2_out,
-    invalid_out => invalid_2_out,
-    inf_out => inf_2_out,
-    both_denorm_out => both_denorm_2_out,
-    intermediate_exp => intermediate_exp,
-    intermediate_mantix => intermediate_mantix
-  );
-
-  THIRD: THIRD_STAGE port map (
-    CLK => CLK,
-    RST => RST,
-    sign => sign_2_out,
-    zero => zero_2_out,
-    invalid => invalid_2_out,
-    inf => inf_2_out,
-    both_denorm => both_denorm_2_out,
-    intermediate_exp => intermediate_exp,
-    intermediate_mantix => intermediate_mantix,
-    invalid_out => temp_invalid,
-    result_out => temp_p
-  );
-
-
   REG_X_IN: REG_PP_N generic map (32) port map (CLK, RST, X, REGOUT_X);
   REG_Y_IN: REG_PP_N generic map (32) port map (CLK, RST, Y, REGOUT_Y);
 
-  REG_P_OUT: REG_PP_32 port map (CLK, RST, temp_p, P);
+  FIRST: FIRST_STAGE
+    port map (
+      
+      X              => REGOUT_X,
+      Y              => REGOUT_Y,
+      zero           => zero_1_in,
+      invalid        => invalid_1_in,
+      inf            => inf_1_in,
+      both_denorm    => both_denorm_1_in,
+      sign           => sign_1_in,
+      exp_x          => exp_x,
+      exp_y          => exp_y,
+      fixed_mantix_x => mantix_x,
+      fixed_mantix_y => mantix_y
+    );
+
+  REG_EXP_X: REG_PP_N generic map (8) port map (CLK, RST, exp_x, exp_x_out);
+  REG_EXP_Y: REG_PP_N generic map (8) port map (CLK, RST, exp_y, exp_y_out);
+  REG_MANTIX_X: REG_PP_N generic map (24) port map (CLK, RST, mantix_x, mantix_x_out);
+  REG_MANTIX_Y: REG_PP_N generic map (24) port map (CLK, RST, mantix_y, mantix_y_out);
+
+  REG_SIGN: REG_PP_1 port map (CLK, RST, sign_1_in, sign_1_out);
+  REG_ZERO: REG_PP_1 port map (CLK, RST, zero_1_in, zero_1_out);
+  REG_INVALID: REG_PP_1 port map (CLK, RST, invalid_1_in, invalid_1_out);
+  REG_INF: REG_PP_1 port map (CLK, RST, inf_1_in, inf_1_out);
+  REG_BOTH_DENORM: REG_PP_1 port map (CLK, RST, both_denorm_1_in, both_denorm_1_out);
+
+  SECOND: SECOND_STAGE
+    port map (
+      
+      exp_x               => exp_x_out,
+      exp_y               => exp_y_out,
+      mantix_x            => mantix_x_out,
+      mantix_y            => mantix_y_out,
+      sign_in             => sign_1_out,
+      zero_in             => zero_1_out,
+      invalid_in          => invalid_1_out,
+      inf_in              => inf_1_out,
+      both_denorm_in      => both_denorm_1_out,
+
+      sign_out            => sign_2_in,
+      zero_out            => zero_2_in,
+      invalid_out         => invalid_2_in,
+      inf_out             => inf_2_in,
+      both_denorm_out     => both_denorm_2_in,
+
+      intermediate_exp    => intermediate_exp,
+      intermediate_mantix => intermediate_mantix
+    );
+
+  REG_INTERMEDIATE_EXP: REG_PP_N generic map (10) port map (CLK, RST, intermediate_exp, intermediate_exp_out);
+  REG_INTERMEDIATE_MANTIX: REG_PP_N generic map (48) port map (CLK, RST, intermediate_mantix, intermediate_mantix_out);
+
+  REG_SIGN_2: REG_PP_1 port map (CLK, RST, sign_2_in, sign_2_out);
+
+  REG_ZERO_2: REG_PP_1 port map (CLK, RST, zero_2_in, zero_2_out);
+  REG_INVALID_2: REG_PP_1 port map (CLK, RST, invalid_2_in, invalid_2_out);
+  REG_INF_2: REG_PP_1 port map (CLK, RST, inf_2_in, inf_2_out);
+  REG_BOTH_DENORM_2: REG_PP_1 port map (CLK, RST, both_denorm_2_in, both_denorm_2_out);
+
+  THIRD: THIRD_STAGE
+    port map (
+    
+      sign                => sign_2_out,
+      zero                => zero_2_out,
+      invalid             => invalid_2_out,
+      inf                 => inf_2_out,
+      both_denorm         => both_denorm_2_out,
+      intermediate_exp    => intermediate_exp_out,
+      intermediate_mantix => intermediate_mantix_out,
+
+      invalid_out         => temp_invalid,
+      result_out          => temp_p
+    );
+
+  REG_P_OUT: REG_PP_n generic map(32) port map (CLK, RST, temp_p, P);
   REG_P_INVALID_OUT: REG_PP_1 port map (CLK, RST, temp_invalid, invalid_output);
 
-  
 end architecture;
 

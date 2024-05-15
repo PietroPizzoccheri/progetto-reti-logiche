@@ -4,7 +4,6 @@ library IEEE;
 
 entity SECOND_STAGE is
   port (
-    CLK, RST                                        : in  std_logic;
     exp_x, exp_y                                    : in  std_logic_vector(7 downto 0);
     mantix_x, mantix_y                              : in  std_logic_vector(23 downto 0);
     sign_in                                         : in  std_logic;
@@ -17,27 +16,7 @@ entity SECOND_STAGE is
 end entity;
 
 architecture RTL of SECOND_STAGE is
-  component REG_PP_1 is
-    port (
-      CLK : in  std_logic;
-      RST : in  std_logic;
-      X   : in  std_logic;
-      Y   : out std_logic
-    );
-  end component;
-
-  component REG_PP_N is
-    generic (
-      N : integer
-    );
-    port (
-      CLK : in  std_logic;
-      RST : in  std_logic;
-      X   : in  std_logic_vector(N - 1 downto 0);
-      Y   : out std_logic_vector(N - 1 downto 0)
-    );
-  end component;
-
+  
   component EXP_ADDER is
     port (
       E1  : in  STD_LOGIC_VECTOR(7 downto 0);
@@ -62,44 +41,33 @@ architecture RTL of SECOND_STAGE is
     );
   end component;
 
-  signal REGOUT_EXP_X, REGOUT_EXP_Y       : std_logic_vector(7 downto 0);
-  signal REGOUT_MANTIX_X, REGOUT_MANTIX_Y : std_logic_vector(23 downto 0);
+  --signal REGOUT_EXP_X, REGOUT_EXP_Y       : std_logic_vector(7 downto 0);
+  --signal REGOUT_MANTIX_X, REGOUT_MANTIX_Y : std_logic_vector(23 downto 0);
   signal intermediate_exp_signal          : std_logic_vector(9 downto 0);
   signal intermediate_mantix_signal       : std_logic_vector(47 downto 0);
-  signal zero_out_signal, invalid_out_signal, inf_out_signal, both_denorm_out_signal,sign_out_signal: std_logic;
+  --signal zero_out_signal, invalid_out_signal, inf_out_signal, both_denorm_out_signal,sign_out_signal: std_logic;
 
   constant BIAS : std_logic_vector(8 downto 0) := "001111111";
   signal exponents_sum : std_logic_vector(8 downto 0);
 
 begin
 
-  REG_EXP_X: REG_PP_N generic map (8) port map (CLK, RST, exp_x, REGOUT_EXP_X);
-  REG_EXP_Y: REG_PP_N generic map (8) port map (CLK, RST, exp_y, REGOUT_EXP_Y);
-  REG_MANTIX_X: REG_PP_N generic map (24) port map (CLK, RST, mantix_x, REGOUT_MANTIX_X);
-  REG_MANTIX_Y: REG_PP_N generic map (24) port map (CLK, RST, mantix_y, REGOUT_MANTIX_Y);
+  MANTIX_MULT: MUL_24_CLA_SPLITTED port map (mantix_x, mantix_y, intermediate_mantix_signal);
 
-  REG_SIGN: REG_PP_1 port map (CLK, RST, sign_in, sign_out_signal);
-  REG_ZERO: REG_PP_1 port map (CLK, RST, zero_in, zero_out_signal);
-  REG_INVALID: REG_PP_1 port map (CLK, RST, invalid_in, invalid_out_signal);
-  REG_INF: REG_PP_1 port map (CLK, RST, inf_in, inf_out_signal);
-  REG_BOTH_DENORM: REG_PP_1 port map (CLK, RST, both_denorm_in, both_denorm_out_signal);
-
-  MANTIX_MULT: MUL_24_CLA_SPLITTED port map (REGOUT_MANTIX_X, REGOUT_MANTIX_Y, intermediate_mantix_signal);
-
-  EXP_ADD: EXP_ADDER port map (REGOUT_EXP_X, REGOUT_EXP_Y, exponents_sum);
+  EXP_ADD: EXP_ADDER port map (exp_x, exp_y, exponents_sum);
 
   BIAS_SUB: BIAS_SUBTRACTOR port map (exponents_sum, BIAS, intermediate_exp_signal);
 
-  compute: process (zero_out_signal, invalid_out_signal, inf_out_signal, both_denorm_out_signal,sign_out_signal , intermediate_exp_signal , intermediate_mantix_signal) 
-  begin 
-  invalid_out <= invalid_out_signal;
-  zero_out <= zero_out_signal;
-  inf_out <= inf_out_signal;
-  both_denorm_out <= both_denorm_out_signal;
+  
+  invalid_out <= invalid_in;
+  zero_out <= zero_in;
+  inf_out <= inf_in;
+  sign_out <= sign_in;
+  both_denorm_out <= both_denorm_in;
   intermediate_exp <= intermediate_exp_signal;
   intermediate_mantix <= intermediate_mantix_signal;
-  sign_out <= sign_out_signal;
-  end process;
+  
+  
 
 
 end architecture;

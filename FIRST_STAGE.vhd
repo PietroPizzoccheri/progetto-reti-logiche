@@ -4,7 +4,6 @@ library IEEE;
 
 entity FIRST_STAGE is
   port (
-    CLK, RST                        : in  std_logic;
     X, Y                            : in  std_logic_vector(31 downto 0);
     zero, invalid, inf, both_denorm : out std_logic;
     sign                            : out std_logic;
