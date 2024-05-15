@@ -89,6 +89,9 @@ architecture RTL of THIRD_STAGE is
   signal FIXED_MANTIX : std_logic_vector(22 downto 0);
 
   signal TEMP_RESULT : std_logic_vector(31 downto 0);
+
+  signal result_out_sig : std_logic_vector(31 downto 0);
+  signal invalid_out_sig : std_logic;
 begin
   REG_INTERMEDIATE_EXP: REG_PP_N generic map (10) port map (CLK, RST, intermediate_exp, REGOUT_INTERMEDIATE_EXP);
   REG_INTERMEDIATE_MANTIX: REG_PP_N generic map (48) port map (CLK, RST, intermediate_mantix, REGOUT_INTERMEDIATE_MANTIX);
@@ -106,7 +109,14 @@ begin
 
   FIX_RESULT: RESULT_FIXER port map (ROUNDED_EXP, ROUNDED_MANTIX, FIXED_EXP, FIXED_MANTIX);
 
-  TEMP_RESULT <= REGOUT_SIGN & FIXED_EXP & FIXED_MANTIX;
+  TEMP_RESULT <= (REGOUT_SIGN & FIXED_EXP & FIXED_MANTIX);
+
+  compute: process (result_out_sig,invalid_out_sig)
+  begin
+    result_out<= result_out_sig;
+    invalid_out<= invalid_out_sig;
+  end process;
+  
 
   outp: OUTPUT_LOGIC
     port map (
@@ -115,8 +125,8 @@ begin
       invalid_in  => REGOUT_INVALID,
       inf         => REGOUT_INF,
       both_denorm => REGOUT_BOTH_DENORM,
-      result_out  => result_out,
-      invalid_out => invalid_out
+      result_out  => result_out_sig,
+      invalid_out => invalid_out_sig
     );
 
 end architecture;

@@ -42,7 +42,7 @@ architecture behavior of TB_PIPELINED_MULT is
   constant NotANumber       : STD_LOGIC_VECTOR(31 downto 0) := "11111111110000001000010000000000";
 
   -- Clock period definitions
-  constant CLK_period : time := 30 ns;
+  constant CLK_period : time := 60 ns;
 begin
 
   -- Instantiate the Unit Under Test (UUT)
@@ -70,16 +70,14 @@ begin
 
   stim_proc: process
   begin
+  wait for 120 ns;
     -- hold reset state for 100 ns.
     RST <= '1';
     wait for CLK_period * 3;
     RST <= '0';
-    wait for CLK_period / 2;
-
+    --wait for CLK_period / 2;
     -- Edge cases tests
     -- Zero results: we should get 0 as a result
-    
-
     -- 0 * 0 = 0
     input_X <= Zero;
     input_Y <= Zero;
@@ -93,18 +91,15 @@ begin
     -- 0 * Denorm = 0
     input_X <= Zero;
     input_Y <= LargestDenorm;
-    wait for CLK_period;
-
     expected_output <= Zero;
     expected_invalid_output <= '0';
+    wait for CLK_period;
 
     assert (P = expected_output) and (invalid_output = expected_invalid_output) severity error;
     wait for CLK_period;
     assert (P = expected_output) and (invalid_output = expected_invalid_output) severity error;
     wait for CLK_period;
     assert (P = expected_output) and (invalid_output = expected_invalid_output) severity error;
-
-    
 
     -- Infinity * Infinity = +Infinity
     input_X <= PositiveInfinity;
@@ -131,8 +126,6 @@ begin
     assert (P = expected_output) and (invalid_output = expected_invalid_output) severity error;
     wait for CLK_period;
     assert (P = expected_output) and (invalid_output = expected_invalid_output) severity error;
-
-    
 
     -- NaN * NaN = NaN
     input_X <= NotANumber;
@@ -184,51 +177,57 @@ begin
     -- Test 3: Denorm * Denorm = Underflow
     input_X <= LargestDenorm;
     input_Y <= LargestDenorm;
-    wait for CLK_period;
     expected_output <= One; -- Test 1 Expected output
     expected_invalid_output <= '0';
+    wait for CLK_period;
     assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 1 failed" severity error;
 
     --Test 4: Largest * Largest = Overflow
     input_X <= LargestNorm;
     input_Y <= LargestNorm;
-    wait for CLK_period;
     expected_output <= "01000001110000001011100001010010"; -- Test 2 Expected output
     expected_invalid_output <= '0';
+    wait for CLK_period;
+
     assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 2 failed" severity error;
 
     -- Test 5: Norm * Denorm, 3.3 * 1.498672E-39 = 4.945617E-39 (Wich is a Denorm number)
     input_X <= "01000000010100110011001100110011";
     input_Y <= "00000000000100000101000110110000";
-    wait for CLK_period;
     expected_output <= Zero; -- Test 3 Expected output
     expected_invalid_output <= '0';
+    wait for CLK_period;
+
     assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 3 failed" severity error;
 
     -- Test 6: Very Small Norm * Very Small Denorm, 7.7582626E-38 * 1.498672E-39 = Underflow
     input_X <= "00000001110100110011001100110011";
     input_Y <= "00000000000100000101000110110000";
-    wait for CLK_period;
     expected_output <= PositiveInfinity; -- Test 4 Expected output
     expected_invalid_output <= '0';
+    wait for CLK_period;
+
     assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 4 failed" severity error;
 
     -- Test 7: Norm * Denorm, 9.879754E-39 * 9.86454E33 = 9.7459226E-5 (Wich is a Norm number)
     input_X <= "00000000011010111001010010111100";
     input_Y <= "01110111111100110010111000000000";
-    wait for CLK_period;
     expected_output <= "00000000001101011101101001011110"; -- Test 5 Expected output
     expected_invalid_output <= '0';
+    wait for CLK_period;
+
     assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 5 failed" severity error;
 
-    wait for CLK_period;
     expected_output <= Zero; -- Test 6 Expected output
     expected_invalid_output <= '0';
+    wait for CLK_period;
+
     assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 6 failed" severity error;
 
-    wait for CLK_period;
     expected_output <= "00111000110011000110001100000110"; -- Test 7 Expected output
     expected_invalid_output <= '0';
+    wait for CLK_period;
+
     assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 7 failed" severity error;
     wait;
   end process;
