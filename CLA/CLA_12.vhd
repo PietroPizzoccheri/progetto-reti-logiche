@@ -10,7 +10,7 @@ entity CLA_12 is
   );
 end entity;
 
--- Pag. 175
+-- CLA_12 with 4-bit CLAs in ripple-carry configuration
 
 architecture rtl of CLA_12 is
 
@@ -27,8 +27,8 @@ architecture rtl of CLA_12 is
 
 begin
 
-  CLA0: CLA_4 port map (X(3 downto 0) , y(3 downto 0), Cin, S(3 downto 0), Cout0);
-  CLA1: CLA_4 port map (X(7 downto 4) , y(7 downto 4), Cout0, S(7 downto 4), Cout1);
+  CLA0: CLA_4 port map (X(3 downto 0), y(3 downto 0), Cin, S(3 downto 0), Cout0);
+  CLA1: CLA_4 port map (X(7 downto 4), y(7 downto 4), Cout0, S(7 downto 4), Cout1);
   CLA2: CLA_4 port map (X(11 downto 8), y(11 downto 8), Cout1, S(11 downto 8), Cout);
 
 end architecture;

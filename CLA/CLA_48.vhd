@@ -10,7 +10,7 @@ entity CLA_48 is
   );
 end entity;
 
--- Pag. 175
+-- CLA_48 with 8-bit CLAs in ripple-carry configuration
 
 architecture rtl of CLA_48 is
 
