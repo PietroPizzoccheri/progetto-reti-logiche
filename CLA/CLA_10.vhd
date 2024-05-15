@@ -10,6 +10,8 @@ entity CLA_10 is
   );
 end entity;
 
+-- 10-bit CLA made with 8-bit CLA in ripple-carry with 2-bit CLA
+
 architecture rtl of CLA_10 is
 
   component CLA_2 is

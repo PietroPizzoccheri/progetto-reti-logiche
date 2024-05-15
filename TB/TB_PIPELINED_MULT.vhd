@@ -71,7 +71,6 @@ begin
   stim_proc: process
   begin
     wait for 120 ns;
-    -- hold reset state for 100 ns.
     RST <= '1';
     wait for CLK_period * 3;
     RST <= '0';

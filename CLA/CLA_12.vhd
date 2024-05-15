@@ -10,7 +10,7 @@ entity CLA_12 is
   );
 end entity;
 
--- CLA_12 with 4-bit CLAs in ripple-carry configuration
+-- 12-bit CLA made with 4-bit CLAs in ripple-carry configuration
 
 architecture rtl of CLA_12 is
 
