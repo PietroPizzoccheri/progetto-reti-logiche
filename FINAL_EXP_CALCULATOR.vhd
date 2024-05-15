@@ -21,11 +21,13 @@ architecture RTL of FINAL_EXP_CALCULATOR is
       Cout : out std_logic
     );
   end component;
+  
 
   signal OFFSET_10     : std_logic_vector(9 downto 0);
   signal OFFSET_TO_ADD : std_logic_vector(9 downto 0);
   signal EXTENDED_SUB  : std_logic_vector(9 downto 0);
   signal SUB_SIG       : std_logic;
+  signal S_SIG         : std_logic_vector(9 downto 0);
 
 begin
   OFFSET_10     <= "00000" & OFFSET; -- pad with 0s
@@ -33,12 +35,21 @@ begin
   OFFSET_TO_ADD <= EXTENDED_SUB xor OFFSET_10;
   SUB_SIG       <= SUB;
 
+  compute : process (S_SIG)
+  begin
+    S <= S_SIG;
+  end process;
+
+
+
   adder: CLA_10
     port map (
       X    => EXP,
       Y    => OFFSET_TO_ADD,
-      S    => S,
+      S    => S_SIG,
       Cin  => SUB_SIG,
       Cout => open
     );
+
+
 end architecture;

@@ -14,6 +14,7 @@ architecture RTL of MANTIX_FIXER is
 
   signal EXP_IS_ZERO : STD_LOGIC;
 begin
+
   EXP_IS_ZERO <= not(exp(0) or exp(1) or exp(2) or exp(3) or exp(4) or exp(5) or exp(6) or exp(7));
 
   p: process (EXP_IS_ZERO, MANTIX)

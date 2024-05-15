@@ -72,6 +72,15 @@ architecture structural of PIPELINED_MULT is
     );
   end component;
 
+  component REG_PP_32 is
+    port (
+      CLK : in  std_logic;
+      RST : in  std_logic;
+      X   : in  std_logic_vector(31 downto 0);
+      Y   : out std_logic_vector(31 downto 0)
+    );
+  end component;
+
   signal REGOUT_X, REGOUT_Y                                                  : std_logic_vector(31 downto 0);
   signal zero_1_out, invalid_1_out, inf_1_out, both_denorm_1_out, sign_1_out : std_logic;
   signal sign_2_out, zero_2_out, invalid_2_out, inf_2_out, both_denorm_2_out : std_logic;
@@ -140,7 +149,7 @@ FIRST: FIRST_STAGE port map (
   REG_X_IN: REG_PP_N generic map (32) port map (CLK, RST, X, REGOUT_X);
   REG_Y_IN: REG_PP_N generic map (32) port map (CLK, RST, Y, REGOUT_Y);
 
-  REG_P_OUT: REG_PP_N generic map (32) port map (CLK, RST, temp_p, P);
+  REG_P_OUT: REG_PP_32 port map (CLK, RST, temp_p, P);
   REG_P_INVALID_OUT: REG_PP_1 port map (CLK, RST, temp_invalid, invalid_output);
 
   

@@ -15,7 +15,7 @@ begin
   begin
     if (RST = '1') then
       Y <= '0';
-    elsif (CLK'event and CLK = '1') then
+    elsif (rising_edge(CLK)) then
       Y <= X;
     end if;
   end process;
