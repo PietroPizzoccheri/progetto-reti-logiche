@@ -45,18 +45,25 @@ architecture RTL of FIRST_STAGE is
   signal SIGN_X, SIGN_Y     : std_logic;
   signal temp_exp_x, temp_exp_y : std_logic_vector(7 downto 0);
   signal mantix_x, mantix_y : std_logic_vector(22 downto 0);
+  signal fixed_mantix_x_temp, fixed_mantix_y_temp : std_logic_vector(23 downto 0);
 
 begin
 
   SPLITTER_X: OPERANDS_SPLITTER port map (X, SIGN_X, temp_exp_x, mantix_x);
   SPLITTER_Y: OPERANDS_SPLITTER port map (Y, SIGN_Y, temp_exp_y, mantix_y);
 
-  MANTIX_FIXER_X: MANTIX_FIXER port map (mantix_x, temp_exp_x, fixed_mantix_x);
-  MANTIX_FIXER_Y: MANTIX_FIXER port map (mantix_y, temp_exp_y, fixed_mantix_y);
+  MANTIX_FIXER_X: MANTIX_FIXER port map (mantix_x, temp_exp_x, fixed_mantix_x_temp);
+  MANTIX_FIXER_Y: MANTIX_FIXER port map (mantix_y, temp_exp_y, fixed_mantix_y_temp);
 
+  compute: process (temp_exp_x, temp_exp_y, SIGN_X, SIGN_Y , fixed_mantix_x_temp, fixed_mantix_y_temp)
+  begin
+
+  fixed_mantix_x <= fixed_mantix_x_temp;
+  fixed_mantix_y <= fixed_mantix_y_temp;
   exp_x <= temp_exp_x;
   exp_y <= temp_exp_y;
   sign <= SIGN_X xor SIGN_Y;
+  end process;
 
   EDGE_CASES: EDGE_CASES_HANDLER port map (X, Y, zero, invalid, inf, both_denorm);
 
