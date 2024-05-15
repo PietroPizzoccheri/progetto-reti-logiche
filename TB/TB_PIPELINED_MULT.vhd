@@ -70,8 +70,7 @@ begin
 
   stim_proc: process
   begin
-  wait for 120 ns;
-    -- hold reset state for 100 ns.
+    wait for 120 ns;
     RST <= '1';
     wait for CLK_period * 3;
     RST <= '0';
@@ -218,6 +217,9 @@ begin
 
     assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 5 failed" severity error;
 
+    -- Test 8: 0.1 * 0.2 = 0.02
+    input_X <= "00111101110011001100110011001101";
+    input_Y <= "00111110010011001100110011001101";
     expected_output <= Zero; -- Test 6 Expected output
     expected_invalid_output <= '0';
     wait for CLK_period;
@@ -229,6 +231,11 @@ begin
     wait for CLK_period;
 
     assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 7 failed" severity error;
+
+    wait for CLK_period;
+    expected_output <= "00111100101000111101011100001010"; -- Test 8 Expected output
+    expected_invalid_output <= '0';
+    assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 8 failed" severity error;
     wait;
   end process;
 

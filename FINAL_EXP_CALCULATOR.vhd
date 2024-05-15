@@ -13,40 +13,32 @@ end entity;
 
 architecture RTL of FINAL_EXP_CALCULATOR is
 
-  component CLA_12 is
+  component CLA_10 is
     port (
-      X, Y : in  std_logic_vector(11 downto 0);
+      X, Y : in  std_logic_vector(9 downto 0);
       Cin  : in  std_logic;
-      S    : out std_logic_vector(11 downto 0);
+      S    : out std_logic_vector(9 downto 0);
       Cout : out std_logic
     );
   end component;
 
-  signal EXP_12        : std_logic_vector(11 downto 0);
-  signal OFFSET_12     : std_logic_vector(11 downto 0);
-  signal OFFSET_TO_ADD : std_logic_vector(11 downto 0);
-  signal TEMP_SUM      : std_logic_vector(11 downto 0);
-  signal extended_SUB  : std_logic_vector(11 downto 0);
+  signal OFFSET_10     : std_logic_vector(9 downto 0);
+  signal OFFSET_TO_ADD : std_logic_vector(9 downto 0);
+  signal EXTENDED_SUB  : std_logic_vector(9 downto 0);
   signal SUB_SIG       : std_logic;
 
 begin
-
-  EXP_12        <= EXP(9) & EXP(9) & EXP; --extend the sign
-  OFFSET_12     <= "0000000" & OFFSET;
-  extended_SUB  <= (others => SUB);
-  OFFSET_TO_ADD <= extended_SUB xor OFFSET_12;
+  OFFSET_10     <= "00000" & OFFSET; -- pad with 0s
+  EXTENDED_SUB  <= (others => SUB);
+  OFFSET_TO_ADD <= EXTENDED_SUB xor OFFSET_10;
   SUB_SIG       <= SUB;
 
-  adder: CLA_12
+  adder: CLA_10
     port map (
-      X    => EXP_12,
+      X    => EXP,
       Y    => OFFSET_TO_ADD,
-      S    => TEMP_SUM(11 downto 0),
+      S    => S,
       Cin  => SUB_SIG,
       Cout => open
     );
-
-  S(9 downto 0) <= TEMP_SUM(9 downto 0);
-
-  -- S(9) <= COUT_TEMP when (EXP(8) = '1') and ((TEMP_SUM(8) = '1' and COUT_TEMP = '0') or (TEMP_SUM(8) = '0' and COUT_TEMP = '1')) else TEMP_SUM(8);
 end architecture;

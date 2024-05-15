@@ -5,11 +5,12 @@ entity REG_PP_N is
   generic (
     N : integer := 1
   );
-  port (CLK : in  std_logic;
-        RST : in  std_logic;
-        X   : in  std_logic_vector(N - 1 downto 0);
-        Y   : out std_logic_vector(N - 1 downto 0)
-       );
+  port (
+    CLK : in  std_logic;
+    RST : in  std_logic;
+    X   : in  std_logic_vector(N - 1 downto 0);
+    Y   : out std_logic_vector(N - 1 downto 0)
+  );
 end entity;
 
 architecture rtl of REG_PP_N is
