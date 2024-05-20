@@ -151,6 +151,11 @@ begin
     input_Y <= PositiveInfinity;
     wait for CLK_period;
 
+    -- Infinity * zero = NaN
+    input_X <= PositiveInfinity;
+    input_Y <= Zero;
+    wait for CLK_period;
+
     -- Test 1: 1.0 * 1.0 = 1.0
     input_X <= One;
     input_Y <= One;
@@ -213,16 +218,25 @@ begin
     wait for CLK_period / 2;
     expected_invalid_output <= '0';
     expected_output <= "00000000001101011101101001011110"; -- Test 5 Expected output
-    wait for CLK_period;
+    wait for CLK_period / 2;
 
     assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 5 failed" severity error;
 
+    -- Test 9: -Inf * Inf = Inf
+    input_X <= NegativeInfinity;
+    input_Y <= PositiveInfinity;
+    wait for CLK_period / 2;
     expected_output <= Zero; -- Test 6 Expected output
     expected_invalid_output <= '0';
-    wait for CLK_period;
+    wait for CLK_period / 2;
 
     assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 6 failed" severity error;
 
+
+    --Test 10 : -Inf * -Inf = Inf
+    input_X <= NegativeInfinity;
+    input_Y <= NegativeInfinity;
+    wait for CLK_period / 2;
     expected_output <= "00111000110011000110001100000110"; -- Test 7 Expected output
     expected_invalid_output <= '0';
     wait for CLK_period;
@@ -231,6 +245,16 @@ begin
     expected_output <= "00111100101000111101011100001010"; -- Test 8 Expected output
     expected_invalid_output <= '0';
     assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 8 failed" severity error;
+    wait for CLK_period;
+
+    expected_output <= NegativeInfinity; -- Test 9 Expected output
+    expected_invalid_output <= '0';
+    assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 9 failed" severity error;
+    wait for CLK_period;
+
+    expected_output <= PositiveInfinity; -- Test 10 Expected output
+    expected_invalid_output <= '0';
+    assert (P = expected_output) and (invalid_output = expected_invalid_output) report "Test 10 failed" severity error;
     wait;
   end process;
 
