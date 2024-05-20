@@ -1,0 +1,560 @@
+\documentclass[twoside,11pt]{article}
+
+\usepackage{blindtext}
+\usepackage{jmlr2e}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+
+\newcommand{\dataset}{{\cal D}}
+\newcommand{\fracpartial}[2]{\frac{\partial #1}{\partial  #2}}
+
+% Heading arguments are {volume}{year}{pages}{date submitted}{date published}{paper id}{author-full-names}
+
+
+\ShortHeadings{Progetto di Reti Logiche}{Progetto di Reti Logiche}
+\firstpageno{1}
+
+\begin{document}
+
+\title{Moltiplicatore floating-point IEEE 754}
+
+\author{\name Pietro Pizzoccheri (10797420) \email pietro.pizzoccheri@mail.polimi.it \\
+    \addr Politecnico di Milano polo di Cremona\\
+    Ingegneria Informatica
+    \AND
+    \name Luca Zani (10817562) \email luca2.zani@mail.polimi.it \\
+    \addr Politecnico di Milano polo di Cremona\\
+    Ingegneria Informatica}
+
+\editor{Luca Zani \& Pietro Pizzoccheri}
+
+\maketitle
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{images/architecture.png}
+\end{figure}
+
+\tableofcontents
+
+\newpage
+
+\section{Introduzione}
+In questo progetto si vuole realizzare un moltiplicatore fra numeri che seguono lo standard \verb|IEEE 754| per la \textbf{rappresentazione floating-point a precisione singola}.
+In particolare, il moltiplicatore in questione deve essere in grado di gestire operandi normalizzati, denormalizzati, speciali (\verb|NaN| e $\infty$) ed essere pipelined.\\
+Lo standard \verb|IEEE 754| per la rappresentazione di numeri in virgola mobile in binario si basa sulla formula seguente :
+\begin{equation*}
+    (-1)^s \cdot 2^{e-\text{bias}} \cdot 1,m
+\end{equation*}
+Dove $s$ indica il segno, $e$ l’esponente e $m$ la mantissa, il valore di bias è pari a $127$.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\linewidth]{images/standard.png}
+    \caption{Codifica standard IEEE 754}
+    \label{fig:enter-label}
+\end{figure}
+
+\subsection{Numeri Normalizzati e Denormalizzati}
+Nello standard \verb|IEEE 754| si fa riferimento a due classi di numeri rappresentabili: numeri \textbf{Normalizzati} e \textbf{Denormalizzati}.\\
+La distinzione riguarda il valore rappresentabile dagli stessi:
+\begin{itemize}[noitemsep]
+    \item Con i numeri normalizzati possiamo rappresentare numeri nel range: $\pm 1.18 \cdot 10^{38}$ fino a $\pm 1.18 \cdot 10^{-38}$
+    \item Mentre con numeri denormalizzati: $\pm 1.18 \cdot 10^{-38}$ fino a $\pm 1.4 \cdot 10^{-45}$
+\end{itemize}
+Per distinguere le due categorie è sufficiente osservare gli 8-bit dell'esponente. Nei numeri denormalizzati infatti si avrà un esponente composto da tutti 0.
+Nel caso dei numeri normalizzati la mantissa rappresenta la parte decimale dopo un 1 che viene omesso e perciò considerato implicito, nel caso dei denormalizzati invece non è presente un 1 implicito in modo tale da rendere possibile la rappresentazione di numeri con esponente minore del valore minimo rappresentabile negli 8 bit dedicati (-126), infatti sarà la posizione del primo uno in mantissa a determinare il "vero" valore dell'esponente del numero denormalizzato.
+
+\subsection{Operazioni per il calcolo della moltiplicazione}
+Il calcolo della moltiplicazione fra due numeri può essere riassunto coi seguenti passaggi:
+
+\begin{enumerate}[noitemsep]
+    \item Controllo degli operandi
+          \begin{itemize}[noitemsep]
+              \item nel caso assumano valori come \verb|0|, \verb|NaN| o $\infty$ si tratta ogni caso specifico
+              \item nel caso in cui gli operandi siano in forma normalizzata o denormalizzata si procede al calcolo della moltiplicazione
+          \end{itemize}
+    \item Calcolo del segno del valore uscente
+    \item Moltiplicazione delle mantisse dei due operandi, includendo anche l’\verb|1| implicito nel caso di numeri normalizzati o lo \verb|0| nel caso dei denormalizzati
+    \item Somma degli esponenti e sottrazione del valore di bias
+    \item Normalizzazione della mantissa e conseguente aggiustamento del valore dell'esponente
+    \item Controllo Overflow / Underflow dell'esponente con particolare focus nel caso l’esponente risulti nel range dei numeri denormalizzati
+    \item Scrittura del risultato
+\end{enumerate}
+
+Sarà possibile svolgere alcune operazioni parallelamente in quanto associate a parti differenti dei due operandi d’ingresso.
+
+Nei casi in cui uno dei due operandi sia \verb|Nan| o si presentino all'ingresso sia \verb|0| che $\infty$ il componente alzerà un segnale di invalidità come da standard.
+
+Quando si presenteranno invece i valori \verb|0| o $\infty$ su uno dei due operandi il componente setterà il risultato al valore corrispondente secondo la codifica \verb|IEEE 754|
+
+\subsection{Valori Speciali}
+la codifica \verb|IEEE 754| floating point codifica i valori per \verb|0| e \verb|signed infinity| assegnandovi dei valori specifici:
+\begin{itemize}[noitemsep]
+    \item zero: \verb|0 00000000 00000000000000000000000|
+    \item $\infty$: \verb|S 11111111 00000000000000000000000|
+\end{itemize}
+Inoltre è presente un valore speciale \verb|NaN| che indica un valore non considerabile come numero con codifica : \verb|*11111111| seguito da almeno un uno nella parte di mantissa.
+
+\subsection{Gestione Overflow e Underflow}
+Per gestire i casi di Overflow e Underflow è stato scelto di portare in uscita un risultato associato all'estremo superiore o inferiore dei valori rappresentabili.
+\begin{itemize}[noitemsep]
+    \item In caso di \textbf{Overflow} riceverò in uscita la codifica di $\infty$
+    \item In caso di \textbf{Underflow} riceverò in uscita la codifica di \verb|0|
+\end{itemize}
+
+Combinazioni di ingressi che portano ad Overflow o Underflow non produrranno l’asserimento della flag di invalid
+
+Per la precisione il controllo dell'underflow/overflow viene fatto sull'esponente interpretato come signed e a seconda delle seguenti condizioni si compiono le relative scelte:
+\begin{itemize}[noitemsep]
+    \item Se l’esponente è maggiore di $255$ abbiamo un overflow, perciò setteremo il risultato a $\infty$
+    \item Se l’esponente è compreso tra zero e $-23$ abbiamo un underflow recuperabile in quanto ricadiamo in un caso esprimibile dai numeri denormalizzati
+    \item Se l’esponente è minore di $-23$ avremo un underflow irrecuperabile e perciò porremo il risultato a \verb|0|
+\end{itemize}
+
+\newpage
+
+\section{Specifica}
+Il componente progettato è diviso in 3 stadi
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.9\linewidth]{images/pipeline_stages.png}
+    \caption{Struttura a stages del moltiplicatore}
+    \label{fig:stages}
+\end{figure}
+
+nel \textbf{Setup Stage} valutiamo se asserire eventuali \textbf{flag} in base agli input \verb|X| e \verb|Y|.
+Queste flag segnalano valori particolari in ingresso (\verb|Zero|, \verb|NaN| o $\infty$) e tipologia di numeri (Normalizzati e Denormalizzati).
+Vengono poi divisi gli operandi dei due numeri in bit di segno, esponente e mantissa; quest'ultima è estesa a 24-bit aggiungendo il valore binario implicito {(\verb|0| per Denormalizzati, \verb|1| per Normalizzati).\\\\
+\textbf{Calc Stage} esegue le operazioni aritmetiche per determinare il risultato parziale che andrà poi "corretto" nello stadio successivo.
+
+Queste operazioni includono la \textbf{moltiplicazione delle mantisse estese}, la \textbf{somma degli esponenti} e la \textbf{sottrazione del bias} da questa somma.
+\\\\
+Infine \textbf{Result Stage} ha il ruolo di valutare che tipo di aggiustamenti eseguire su mantissa ed esponente.
+
+Ricevendo come risultato intermedio una mantissa da 48-bit è evidente la necessità di \textbf{arrotondamento} a 23-bit per ottenere un risultato conforme allo standard in uso. Durante la fase finale vengono inoltre ispezionati casi di \textbf{Overflow} o \textbf{Underflow} e \textbf{Edge Cases} esaminando le flag ricevute dal primo stadio. Una volta aggiustati i vari operandi essi vengono ricomposti a formare un risultato da 32-bit che viene posto in uscita come \verb|P| e una flag \verb|invalid| che se asserita segnala l’invalidità del risultato presente sulla linea \verb|P|
+
+\subsection{Moduli Setup Stage}
+nel primo Stage sono presenti i seguenti moduli:
+\begin{itemize}[noitemsep]
+    \item \verb|EDGE CASES HANDLER|: che ha il compito di verificare i numeri in ingresso ed alzare eventualmente dei flag (\verb|zero|, \verb|invalid|, \verb|inf|, \verb|both_denorm|) nel caso in cui il valore riconosciuto rientri nei valori speciali
+    \item \verb|OPERANDS SPLITTER|: divide gli ingressi in bit di segno, esponente e mantissa
+    \item \verb|MANTIX FIXER|: aggiunge l’\verb|1| o lo \verb|0| implicito a seconda della tipologia di numero trattato (Normalizzato o Denormalizzato) facendo diventare la mantissa un numero 24-bit pronto per la moltiplicazione
+\end{itemize}
+
+\subsection{Moduli Calc Stage}
+Nel secondo stadio subentrano le operazioni aritmetiche necessarie alla moltiplicazione tramite i seguenti moduli:
+\begin{itemize}[noitemsep]
+    \item \verb|MULTIPLIER|: effettua la moltiplicazione fra le due mantisse da 24-bit
+    \item \verb|EXP ADDER|: componente che somma gli esponenti tramite un \verb|CLA|
+    \item \verb|BIAS SUBTRACTOR|: componente che sottrae agli esponenti sommati il bias di 127, dopo questo componente trattiamo l’esponente come un numero con segno
+\end{itemize}
+
+\subsection{Moduli Result Stage}
+Nel terzo stadio abbiamo i moduli:
+\begin{itemize}[noitemsep]
+    \item \verb|ROUNDER|: prende in ingresso la mantissa moltiplicata ed esegue un controllo sui primi bit: avere un bit al primo da sinistra (MSB) comporta la necessità di sommare 1 all'esponente finale, un uno in seconda posizione ci impone di non sommare nulla (metteremo quindi il flag SUB a 0), trovare un uno dalla terza posizione in poi invece comporta la necessità di sottrarre all'esponente la propria posizione calcolata dall'MSB - 2 (metteremo quindi SUB a 1).
+    \item \verb|FINAL EXP CALCULATOR|: componente che calcola l'esponente finale d’uscita, sommando/sottraendo l’offset ricevuto dal \verb|ROUNDER| a seconda del flag \verb|SUB|.
+    \item \verb|RESULT FIXER|: compie un controllo sull’esponente finale trattandolo come un numero dotato di segno.
+
+          Se l’esponente è minore di -22 allora avremo un underflow non recuperabile e perciò porremo il risultato a zero, in maniera analoga se l’esponente è maggiore di 255 pone il risultato a $\pm \infty$ a seconda del segno.
+
+          Se il valore è compreso tra -22 e 0 allora il numero è denormalizzato, è perciò possibile evitare un underflow; ricompone la mantissa risultato settando il valore dell’esponente a 0.
+    \item \verb|OUTPUT LOGIC|: Riceve i flag dei casi speciali e imposta eventualmente il flag \verb|invalid| oppure uno dei risultati noti secondo la tabella degli Edge Cases; altrimenti ricompone il risultato ricevuto agli altri componenti e lo restituisce in output.
+\end{itemize}
+
+\newpage
+
+\section{Interfaccia del Sistema}
+L'interfaccia riceve in ingresso due numeri (\verb|X| e \verb|Y|) di 32-bit in codifica standard \verb|IEEE 754|, il segnale di clock ed il segnale di reset.
+
+Gli input numerici vengono posizionati in appositi registri di ingresso. Il risultato della computazione sarà reso disponibile su un registro di uscita a 32-bit contenente il valore, sempre in codifica \verb|IEEE 754|, della moltiplicazione tra i due operandi in ingresso.
+
+In output è presente anche un segnale binario che viene impostato a valore logico alto per segnalare che il risultato è invalido (vedi Edge Cases). In caso di risultato \verb|invalid| il valore di uscita P è da ritenersi scorretto e quindi non utilizzabile.
+
+Una volta inseriti i due valori di ingresso sarà possibile accedere al risultato \textbf{al 4 ciclo di clock} \textit{(cc)}.
+
+Utilizzando una architettura pipelined (a 3 stadi nel nostro caso) è possibile ottenere parallelismo tra il calcolo di più coppie di valori in ingresso inseriti sequenzialmente. Il primo risultato sarà computato dopo 3cc, dopodiché eventuali richieste inserite dopo la prima coppia di operandi saranno rese disponibili dopo 1cc l’una.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{images/output_temp_diagram_example.png}
+    \caption{Esempio di timeline d'uscita}
+    \label{fig:output-timeline}
+\end{figure}
+
+\newpage
+
+\section{Architettura}
+Il componente finale (Top Module) racchiude l’intera architettura realizzata come pipeline a 3 stadi
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.9\linewidth]{images/pipeline_stages_with_reg.png}
+    \caption{Struttura Pipeline Esemplificativa}
+    \label{fig:struttura-pipeline}
+\end{figure}
+
+Come possiamo vedere dall'immagine esemplificativa la struttura separa i vari stadi con registri intermedi che permettono di preservare i dati nel caso di operazioni concorrenti.
+Anche per l’interazione con input e output del sistema sono presenti dei registri.
+I registri condividono un segnale di \verb|reset| e un \verb|clock|. La frequenza è stata scelta in base al modulo più lento: dopo opportune ottimizzazioni che verranno trattate nel dettaglio successivamente è stato impostato un clock di \verb|40ns| ($25 MHz$).
+La divisione in stadi è stata scelta sulla base delle dipendenze delle varie operazioni intermedie:
+\begin{itemize}
+    \item Lo stage di setup si occupa delle azioni preliminari da svolgere sugli ingressi come il controllo dei valori speciali, la divisione degli input in segno mantissa ed esponente e la preparazione della mantissa alla moltiplicazione aggiungendo l’1 o lo zero implicito.
+    \item Il secondo stage, quello di calcolo, racchiude la moltiplicazione delle mantisse con un moltiplicatore, la somma degli esponenti e la successiva sottrazione del bias.
+    \item l’ultimo stadio si occupa del controllo finale sul valore dell'esponente e del rounding della mantissa che deve essere riportata a 23 bit in maniera corretta.
+\end{itemize}
+
+L’architettura d’insieme è riassunta in maniera più dettagliata dall'immagine sottostante dove si notano chiaramente gli stage e i vari moduli che li compongono
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1\linewidth]{images/architecture.png}
+    \caption{Architettura Completa}
+    \label{fig:architecture}
+\end{figure}
+
+\newpage
+
+\section{Moduli}
+\subsection{CLAs}
+Per eseguire somme e sottrazioni all'interno del progetto è stato scelto di usare sommatori \verb|CLA|. sono stati realizzati CLA a 2,4 e 8-bit che sono stati poi messi in configurazione ripple-carry per creare sommatory di dimensioni maggiori come CLA 10-bit (CLA 8-bit + CLA 2-bit) e CLA 48-bit (6 * CLA 8-bit).
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\linewidth]{images/setup-stage.png}
+    \caption{Setup Stage}
+    \label{fig:setup-stage}
+\end{figure}
+
+\subsection{Setup Stage Modules}
+\subsubsection{Operands Splitter}
+Questo modulo riceve in ingresso un numero in codifica \verb|IEEE 754| e restituisce in output il segno, l’esponente e la mantissa dividendo l’ingresso in modo da porre il primo bit come bit di segno d’uscita, i successivi 8 bit come esponente e gli ultimi 23 come mantissa.
+
+\subsubsection{Edge Cases Handler}
+Riceve in input i valori in codifica \verb|IEEE 754| dei due numeri in ingresso \verb|X| e \verb|Y|.
+Suddivide i numeri a 32-bit negli atomi principali delineati dalla codifica (1-bit di segno, 8-bit di esponente e 23-bit di mantissa). Tramite un sub-module \verb|FLAG SETTER| esponente e mantissa di un ingresso vengono confrontati nel seguente modo:
+\begin{itemize}[noitemsep]
+    \item I bit dell’esponente vengono posti in una porta \verb|AND8| e \verb|OR8|. I risultati di questa operazione sono passati in un decoder
+    \item All’uscita di questo decoder possiamo prelevare i flag che ci indicano se il numero è zero/denormalizzato (caso exp = 0), normalizzato o inf/NaN (caso exp = tutti 1)
+    \item Viene fatto un or bit a bit della mantissa per ricavare un flag mantix-zero che ci indica se la mantissa presenta almeno un uno
+    \item Infine i flag finali inf, NaN, zero e denorm sono ottenuti tramite un AND fra il flag di mantix-zero (negato nel caso di NaN o denorm) e il rispettivo flag d’uscita del decoder
+\end{itemize}
+
+\subsubsection{Mantix Fixer}
+Questo componente riceve i 23-bit di mantissa e ha il ruolo di prepararla alla moltiplicazione esplicitando il valore unitario implicito: \verb|0| per i numeri Denormalizzati e \verb|1| per i Normalizzati.
+Questo bit viene aggiunto come MSB della mantissa a 23-bit portandola quindi a 24.
+Per capire se stiamo trattando un numero Normalizzato si procede controllando tramite porta \verb|OR8| se è presente almeno un 1 all'esponente.
+
+\subsection{Calc Stage Modules}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\linewidth]{images/calc_stage.png}
+    \caption{Calc Stage}
+    \label{fig:calc-stage}
+\end{figure}
+
+\subsubsection{Multiplier}
+Ha il compito di moltiplicare le due mantisse della coppia di numeri elaborati, lavora con numeri da 24-bit e produrrà risultato su 48-bit.
+Per il calcolo dei prodotti parziali si procede in maniera immediata $p_{i,j} = x_i \cdot y_j$ accorpando i risultati in in vettori $T_i$ per riprodurre vari array sulla quale verrà poi eseguita la somma.
+\begin{equation*}
+    \begin{matrix}
+        \dots & x_6 y_0 & x_5 y_0 & x_4 y_0 & x_3 y_0 & x_2 y_0 & x_1 y_0 & x_0 y_0 \\
+        \dots & x_5 y_1 & x_4 y_1 & x_3 y_1 & x_2 y_1 & x_1 y_1 & x_0 y_1 & 0       \\
+        \dots & x_4 y_2 & x_3 y_2 & x_2 y_2 & x_1 y_2 & x_0 y_2 & 0       & 0       \\
+        \dots & x_3 y_3 & x_2 y_3 & x_1 y_3 & x_0 y_3 & 0       & 0       & 0       \\
+              &         &         &         & \vdots  &         &         &         \\
+    \end{matrix}
+\end{equation*}
+\textit{Ogni riga rappresenta un} $T_i$\\
+
+Date le dimensioni non indifferenti di un moltiplicatore a 24-bit una scelta intelligente per aumentare il parallelismo nelle operazioni di somma è quella di dividere a metà la matrice di T orizzontalmente e procedere a sommare la parte "superiore" e quella "inferiore" parallelamente per poi ricomporre il risultato finale con un'ultima somma a 48-bit.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{images/multiplier_split.png}
+    \caption{Splitted Multiplier}
+    \label{fig:splitted-multiplier}
+\end{figure}
+
+Con questo accorgimento è stato possibile ridurre drasticamente il ritardo di moltiplicazione a tal punto da portare lo stadio che la contiene ad un ritardo paragonabile agli altri.
+
+\subsubsection{Exp Adder}
+Questo componente riceve in ingresso i due esponenti(\verb|E1|, \verb|E2|) da 8-bit e restituisce in uscita la somma su 9-bit (\verb|SUM|), questo perché è possibile che i due numeri sommati vadano ad eccedere il valore massimo rappresentabile in 8-bit.
+
+L’operazione di somma è ottenuta mediante l’utilizzo di un Carry Look Ahead da 8-bit dove poniamo il riporto d’uscita come 9' bit dell'output del componente.
+Questa azione è necessaria al fine di interpretare \verb|SUM| come numero senza segno dato da somma di valori tutti positivi (\verb|E1 + E2 + bias + bias|). Essendo partiti da due esponenti in codifica \verb|IEEE 754| ognuno di essi portava con se un \verb|bias|; dovremo quindi andare a sottrarre il \verb|bias| in eccesso successivamente per avere un valore conforme.
+
+nel caso in cui si abbia in ingresso un numero denormalizzato Exp Adder setta l’esponente di tale numero a \verb|00000001|, ovvero $-126$ nella codifica dello standard.
+
+\subsubsection{Bias Subtractor}
+Prende in ingresso due valori da 9-bit (\verb|EXP| e \verb|BIAS|), considerati come numeri \textbf{unsigned}, e restituisce in uscita un numero in complemento a 2 da 10-bit (\textbf{signed}) in quanto sarà necessario utilizzare il segno per un successivo controllo sui numeri denormalizzati e eventuale underflow.
+
+Per compiere la sottrazione utilizziamo un CLA 10-bit, composto da un CLA 8-bit in ripple carry con un CLA 2-bit, ad un ingresso del sommatore poniamo 127 in notazione complemento a 1 su 10-bit, all'altro ingresso passiamo invece il valore di esponenti sommati sempre su 10-bit (aggiungendo uno zero al bit finale in quanto unsigned).
+Avendo il primo operando in C1 ci basterà aggiungere 1 per ottenerlo in C2.
+
+Passiamo dunque 1 come carry-in.
+\subsection{Result Stage Modules}
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.6\linewidth]{images/result_stage.png}
+    \caption{Result Stage}
+    \label{fig:result-stage}
+\end{figure}
+
+\subsubsection{Offset encoder}
+Questo componente prende in input un valore \verb|X| a 24-bit (Quindi una mantissa + bit esplicito) e restituisce il numero di posizoni di distanza tra il primo 1 che trova e il 24-bit + 1.
+Il funzionamento di fatto è quello di un \textbf{Priority Encoder}, inverso e con un offset di 1.\\
+\textit{Per esempio in} \verb|00000000000000000000001| \textit{il primo 1 dista 22 posizioni dal 24-esimo bit}. offset encoder restituirà \verb|10111| ovvero 23 (22+1)
+
+Come per un priority encoder è presente anche un segnale di errore \verb|Z|, usato quando viene passato un input tutto a 0
+
+
+\subsubsection{Rounder}
+Questo componente riceve in ingresso la mantissa da 48 bit (\verb|MANTIX|), risultato della moltiplicazione fra mantisse, e dà in uscita una mantissa \verb|SHIFTED|, un \verb|OFFSET| e un flag \verb|SUB|.
+Il componente compie un controllo accurato sulla mantissa da 48-bit da normalizzare, le operazioni che esegue sono le seguenti:
+\begin{itemize}[noitemsep]
+    \item Se trova un uno nell'MSB allora pone \verb|OFFSET| a 1, \verb|SHIFTED| viene settata ai primi 23-bit della mantissa d’ingresso e \verb|SUB| a zero in quanto si dovrà andare a sommare uno al valore di esponente finale.
+    \item Se ne trova un uno nel secondo bit da sinistra ma non nell’MSB pone \verb|OFFSET| a zero, \verb|SHIFTED| ai bit dal 47-esimo al 24-esimo della mantissa d’ingresso e \verb|SUB| a zero. l’esponente non andrà modificato in quanto già corretto.
+\end{itemize}
+Questo è necessario in quanto i due bit più significativi del risultato della moltiplicazione sono in realtà valori dopo la virgola, per cui vanno aggiunti all’esponente.
+\begin{itemize}[noitemsep]
+    \item Se non trova un uno nei casi precedenti allora prende come \verb|OFFSET| il risultato del controllo effettuato da \verb|OFFSET ENCODER| sui bit dal 46esimo al 23esimo e shifta la mantissa di \verb|OFFSET|-bit ponendo \verb|SUB| a 1. Nel caso in cui non vi sia nemmeno un 1 nella mantissa d’ingresso dal 46-esimo al 23-esimo bit allora \verb|SHIFTED| assume il valore degli ultimi 23 bit di \verb|MANTIX|, \verb|OFFSET| il suo massimo e \verb|SUB| 1.
+\end{itemize}
+\verb|SHIFTED| sarà la mantissa normalizzata ottenuta tramite shift di un numero di bit pari a \verb|OFFSET|, valore trovato tramite \verb|Offset Encoder|.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.8\linewidth]{images/rounder_example.png}
+\end{figure}
+
+\subsubsection{Final Exp Calculator}
+Riceve in ingresso \verb|EXP| da 10-bit che rappresenta l’esponente con segno in uscita da \verb|Bias Subtractor|, \verb|OFFSET| e \verb|SUB| in uscita da \verb|Rounder| (5 bit e 1 bit rispettivamente) e restituisce in uscita il valore d’esponente \verb|ROUNDED|, ovvero \verb|EXP| con sommato/sottratto (a seconda di \verb|SUB|) il valore di \verb|OFFSET|.
+
+La sottrazione/somma è svolta utilizzando un CLA 10-bit a cui passiamo \verb|SUB| come riporto di ingresso e \verb|EXP| e \verb|OFFSET| come valori da sommare. Nel caso in cui \verb|SUB| sia 1 \verb|OFFSET| verrà preventivamente complementato a uno attraverso uno \verb|xor| che invece lascia \verb|OFFSET| al suo valore originale in caso \verb|SUB| sia 0.
+
+\subsubsection{Result Fixer}
+Questo componente riceve \verb|EXP| e \verb|MANTIX| rispettivamente da \verb|Final Exp Calculator| e da \verb|Rounder|. Ha il compito di controllare il valore dell'esponente con segno ed effettuare eventuali modifiche sulla mantissa finale e sull'esponente in base alle seguenti casistiche:
+\begin{itemize}[noitemsep]
+    \item \verb|EXP| $> 254 \implies$ Overflow, settiamo quindi esponente a tutti 1 e mantissa a tutti 0 (codifica per infinito)
+    \item $-22 <$ \verb|EXP| $< 0 \implies$ caso denormalizzato, settiamo l’esponente a 0 e shiftiamo la mantissa di un valore pari alla somma fra il valore di \verb|EXP| e 22
+    \item \verb|EXP| $< -22 \implies$ Underflow non recuperabile, settiamo esponente e mantissa a 0
+\end{itemize}
+la somma fra il valore di esponente e 22 è effettuata tramite un CLA a 10-bit e lo shift attraverso un modulo chiamato \verb|DENORMALIZER| che riceve in ingresso il valore d’uscita della somma sopra citata e compie uno shift di un numero di posizioni pari al valore dato esplicitando l’uno implicito.
+
+\subsubsection{Output logic}
+Questo modulo svolge l’ultima fase ovvero la scrittura del risultato finale. Riceve in input le varie flag (\verb|zero|, \verb|inf|, \verb|invalid_in| e \verb|both_denorm|) e ne scrive il rispettivo valore di uscita:
+\begin{itemize}[noitemsep]
+    \item flag \verb|zero| $\implies$ result \verb|zero|
+    \item flag \verb|inf| $\implies$ result $\infty$ con segno
+    \item flag \verb|invalid-in| $\implies$ \verb|invalid|, significa che avevamo almeno un \verb|NaN| come operando, viene sollevato il segnale di \verb|invalid| in uscita e il valore del risultato è da considerarsi errato.
+    \item flag \verb|both_denorm| $\implies$ entrambi gli operandi erano denormalizzati. la moltiplicazione ha dato un underflow irreparabile. scrivo la codifica scelta per underflow ovvero \verb|zero|
+\end{itemize}
+Qualora nessuna flag fosse settata il risultato in ingresso è da considerarsi corretto e viene posto in uscita
+
+
+\newpage
+
+\section{Test Bench}
+Per il testing del modulo moltiplicatore floating point è stato adottato un approccio "black box" stimolando gli ingressi con opportuni valori e controllando la correttezza del valore di uscita tramite assertions.
+
+Gli ingressi saranno dunque dei numeri da 32 bit in standard \verb|IEEE 754| aggiornati ad ogni ciclo di clock e anche l’uscita (prodotto) segue la stessa codifica e si presenta corretta dopo 4 cicli di clock dall'ingresso relativo.
+
+Il Test Bench del top module valuta in primo luogo tutti gli Edge Cases. dopodiché sono state scelte opportune coppie di valori di ingresso per stimolare ogni altra casistica che non produca risultati noti.
+
+\section{Casi d'uso}
+Iniziando con la valutazione degli Edge Cases abbiamo voluto testare ogni risultato noto: (dove \verb|invalid| non è esplicitato nel risultato è  da intendersi come \verb|0|)
+
+Valore risultate atteso \verb|zero| (\verb|0 00000000 00000000000000000000000|) e \verb|invalid| a \verb|0|:
+
+\begin{verbatim}
+
+0 00000000 00000000000000000000000 * (Zero)
+0 00000000 00000000000000000000000 = (Zero)
+------------------------------------
+0 00000000 00000000000000000000000
+
+0 00000000 00000000000000000000000 * (Zero)
+0 11111110 11111111111111111111111 = (Norm)
+------------------------------------
+0 00000000 00000000000000000000000
+
+0 00000000 00000000000000000000000 * (Zero)
+0 00000000 11111111111111111111111 = (Denorm)
+------------------------------------
+0 00000000 00000000000000000000000
+
+\end{verbatim}
+
+Valore risultante atteso \verb|signed infinity| (\verb|s 11111111 00000000000000000000000|, dove \verb|s| è il bit di segno) e \verb|invalid| a \verb|0|:
+
+\begin{verbatim}
+
+0 11111111 00000000000000000000000 * (+inf)
+0 11111111 00000000000000000000000 = (+inf)
+------------------------------------
+0 11111111 00000000000000000000000
+
+0 11111111 00000000000000000000000 * (+inf)
+0 11111110 11111111111111111111111 = (Norm)
+------------------------------------
+0 11111111 00000000000000000000000
+
+0 11111111 00000000000000000000000 * (+inf)
+0 00000000 11111111111111111111111 = (Denorm)
+------------------------------------
+0 11111111 00000000000000000000000
+
+1 11111111 00000000000000000000000 * (-inf)
+0 11111111 00000000000000000000000 = (+inf)
+------------------------------------
+1 11111111 00000000000000000000000
+
+1 11111111 00000000000000000000000 * (-inf)
+1 11111111 00000000000000000000000 = (-inf)
+------------------------------------
+0 11111111 00000000000000000000000
+
+\end{verbatim}
+
+
+Valore invalido. ci aspettiamo la flag \verb|invalid| a \verb|1|
+
+
+\begin{verbatim}
+
+1 11111111 10000001000010000000000 * (NaN)
+1 11111111 10000001000010000000000 = (NaN)
+------------------------------------
+X XXXXXXXX XXXXXXXXXXXXXXXXXXXXXXX (and invalid = 1)
+
+1 11111111 10000001000010000000000 * (NaN)
+0 11111110 11111111111111111111111 = (Norm)
+------------------------------------
+X XXXXXXXX XXXXXXXXXXXXXXXXXXXXXXX (and invalid = 1)
+
+1 11111111 10000001000010000000000 * (NaN)
+0 00000000 11111111111111111111111 = (Denorm)
+------------------------------------
+X XXXXXXXX XXXXXXXXXXXXXXXXXXXXXXX (and invalid = 1)
+
+1 11111111 10000001000010000000000 * (NaN)
+0 00000000 00000000000000000000000 = (Zero)
+------------------------------------
+X XXXXXXXX XXXXXXXXXXXXXXXXXXXXXXX (and invalid = 1)
+
+0 11111111 00000000000000000000000 * (Inf)
+0 00000000 00000000000000000000000 = (Denorm)
+------------------------------------
+X XXXXXXXX XXXXXXXXXXXXXXXXXXXXXXX (and invalid = 1)
+
+\end{verbatim}
+
+Una volta verificata l’accuratezza dei risultati tabulari il testing si è concentrato su alcune coppie di valori scelte per stimolare tutti i moduli del moltiplicatore realizzato:
+\\
+\newline
+\textbf{Test 1: 1.0 * 1.0 = 1.0}
+\\
+Test banale ma di immediata verifica
+\begin{verbatim}
+0 01111111 00000000000000000000000 *
+0 01111111 00000000000000000000000 =
+------------------------------------
+0 01111111 00000000000000000000000
+\end{verbatim}
+
+\\
+\vspace{2em}
+\textbf{Test 2: Norm * Norm = Norm}
+\\
+Moltiplica di due numeri Normalizzati, anche questo di facile verifica: $3.3 \cdot 7.3 = 24.09$
+\begin{verbatim}
+0 10000000 10100110011001100110011 *
+0 10000001 11010011001100110011010 =
+------------------------------------
+0 10000011 10000001011100001010010
+\end{verbatim}
+
+\\
+\vspace{2em}
+\textbf{Test 3: Denorm * Denorm = Underflow}
+\\
+Moltiplicare due numeri Denormalizzati darà obbligatoriamente un risultato fortemente denormalizzato, sarà quindi un numero in Underflow. Per verificare il caso estremo abbiamo utilizzato il pi�� grande numero denormalizzato rappresentabile (\verb|0 00000000 11111111111111111111111|) = $1.18\cdot10^{−38}$
+
+\begin{verbatim}
+0 00000000 11111111111111111111111 *
+0 00000000 11111111111111111111111 =
+------------------------------------
+0 00000000 00000000000000000000000 (Underflow, zero)
+\end{verbatim}
+
+\\
+\vspace{2em}
+\textbf{Test 4: Large Norm * Large Norm  = Overflow}
+\\
+Moltiplicare due numeri molto grandi. i più grandi rappresentabili ($1.18\cdot10^{38}$). mi aspetto di ottenere Overflow
+\begin{verbatim}
+0 11111110 11111111111111111111111 *
+0 11111110 11111111111111111111111 =
+------------------------------------
+0 11111111 00000000000000000000000 (Overflow, inf)
+\end{verbatim}
+
+
+\newpage
+\\
+\vspace{2em}
+\textbf{Test 5: Norm * Denorm = Denorm}
+\\
+Questo test è improntato alla verifica del processo di "recupero denormalizzati" attuato dal rounder e dal denormalizer. il risultato intermedio di questa moltiplicazione sarà dunque un numero esprimibile come denormalizzato, i valori usati sono: $3.3 \cdot 1.498672E^{-39} = 4.945617E^{-39}$
+\begin{verbatim}
+0 10000000 10100110011001100110011 *
+0 00000000 00100000101000110110000 =
+------------------------------------
+0 00000000 01101011101101001011110
+\end{verbatim}
+
+
+
+\\
+\vspace{2em}
+\textbf{Test 6: Very Small Norm * Very Small Denorm, = Underflow}
+\\
+Questo test verifica l’altra diramazione del rounder. ovvero l’impossibilità di recupero di un numero che risulterà inferiore al minimo numero rappresentabile tramite valore denormalizzato. siamo quindi nella seconda casistica di Underflow, i valori usati sono: $7.7582626E^{-38} \cdot 1.498672E^{-39}$
+\begin{verbatim}
+0 00000011 10100110011001100110011 *
+0 00000000 00100000101000110110000 =
+------------------------------------
+0 00000000 00000000000000000000000 (Underflow, zero)
+\end{verbatim}
+
+\\
+\vspace{2em}
+\textbf{Test 7 Denorm * Norm}
+\\
+In maniera simile ai precedenti questo test mostra come sia possibile attraverso un numero Normalizzato abbastanza imponente produrre un risultato Normalizzato a fronte di una moltiplicazione con un numero denormalizzato: $9.879754E^{-39} \cdot 9.86454E^{33} = 9.7459226E^{-5}$ (Rientra nel range dei numeri normalizzati).
+\begin{verbatim}
+0 00000000 11010111001010010111100 *
+0 11101111 11100110010111000000000 =
+------------------------------------
+0 01110001 10011000110001100000110
+\end{verbatim}
+
+
+\\
+\vspace{2em}
+\textbf{Test 8  0.1 * 0.2 = 0.02}
+\\
+Questo test specifico vuole comparare il risultato del nostro modulo moltiplicatore con un noto problema di svariati linguaggi di programmazione. Abbiamo deciso di paragonarci al risultato fornito da Javascript che riporta la moltiplicazione $0.1 \cdot 0.2 = 0.020000000000000004$.
+\begin{verbatim}
+0 01111011 10011001100110011001101 *
+0 01111100 10011001100110011001101 =
+------------------------------------
+0 01111001 01000111101011100001010
+\end{verbatim}
+convertendo secondo la codifica il risultato ottenuto abbiamo precisamente $0.02$
+
+\end{document}
