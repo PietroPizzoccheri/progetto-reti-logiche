@@ -40,19 +40,11 @@ architecture RTL of EDGE_CASES_HANDLER is
     );
   end component;
 
-  signal exp_X, exp_Y       : std_logic_vector(7 downto 0);
-  signal mantix_X, mantix_Y : std_logic_vector(22 downto 0);
-  -- signal f                  : std_logic_vector(2 downto 0); -- function of the truth table 
-  -- signal X_case, Y_case     : std_logic_vector(4 downto 0); -- truth table cases
-  --constant NaN      : std_logic_vector(4 downto 0) := "00001";
-  --constant INFINITY : std_logic_vector(4 downto 0) := "00010";
-  --constant CONST    : std_logic_vector(4 downto 0) := "00100";
-  --constant DENORM   : std_logic_vector(4 downto 0) := "01000";
-  --constant NORM     : std_logic_vector(4 downto 0) := "10000";
+  signal exp_X, exp_Y                                                                   : std_logic_vector(7 downto 0);
+  signal mantix_X, mantix_Y                                                             : std_logic_vector(22 downto 0);
   signal zero_X, zero_Y, inf_X, inf_Y, nan_X, nan_Y, norm_X, norm_Y, denorm_X, denorm_Y : std_logic;
 
 begin
-  -- TODO: Move operand splitter outside
   -- split X and Y inputs into sign, exponent and mantissa
   operand_splitter_X: OPERANDS_SPLITTER
     port map (float  => X,

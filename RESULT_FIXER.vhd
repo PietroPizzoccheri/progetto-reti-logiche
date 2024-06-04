@@ -57,8 +57,6 @@ begin
 
   -- We assume that INTERMEDIATE_EXP is a 9 bit number NEGATIVE number. otherwise TEMP_S will not be taken into account
   DENORM_OFFSET_SIG <= TEMP_S(4 downto 0);
-  -- Extend the sign bit
-  -- TEMP_S(9)         <= TEMP_S(9) when ((INTERMEDIATE_EXP(8) = '0')) and ((TEMP_S(8) = '1' and TEMP_S(9) = '0') or (TEMP_S(8) = '0' and TEMP_S(9) = '1')) else TEMP_S(8);
 
   -- Check if the exponent is overflown
   process (INTERMEDIATE_EXP, INTERMEDIATE_MANTIX, TEMP_S, DENORM_OFFSET_SIG)
@@ -80,7 +78,7 @@ begin
         MANTIX <= MANTIX_DENORM; -- da shiftare a dx di temp_s(ultimi 5 bit di temp_s in realtà) posizioni
       end if;
     else
-      -- Number its ok (either a normal number)
+      -- Number its ok
       EXP <= INTERMEDIATE_EXP(7 downto 0);
       MANTIX <= INTERMEDIATE_MANTIX;
     end if;
