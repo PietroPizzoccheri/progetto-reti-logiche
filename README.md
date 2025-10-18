@@ -1,6 +1,7 @@
 # Logic Networks final test Polimi - ENG
 
-In this project, developed in collaboration with [Luca Zani](https://github.com/zaniluca), we created a floating-point multiplier compliant with the IEEE754 standard using Xilinx ISE. The project can also handle denormalized numbers and was presented as the final exam for the "Logic Networks" course at the Politecnico di Milano, Cremona campus. (Final grade: 30/30)
+In this project, developed in collaboration with [Luca Zani](https://github.com/zaniluca), we designed and implemented a digital multiplier for IEEE 754 standard floating-point numbers, in VHDL. Focused on sign-bit handling, exponent normalization, mantissa multiplication, rounding and hardware pipelining to deliver high-speed arithmetic logic with minimal latency and hardware overhead.. The project can also handle denormalized numbers and was presented as the final exam for the "Digital Logic Design" course at the Politecnico di Milano, Cremona campus. (Final grade: 30/30)
+
 
 ![Project Specifications](progetti-2024_page-0001.jpg)
 
